@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dicempire — Zar ve Toprak</title>
-<meta name="description" content="Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.">
+<meta name="description" content="Arkadaşlarınla zar ve ada savaşı.">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:title" content="Dicempire — Zar ve Toprak">
-<meta property="og:description" content="Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.">
+<meta property="og:description" content="Arkadaşlarınla zar ve ada savaşı.">
 <meta property="og:image" content="og-image.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
@@ -34,17 +34,14 @@ body{margin:0;background:var(--sea);color:var(--ink);font-family:"Rubik",system-
 body.menu::before{content:"";position:fixed;inset:0;z-index:-1;
   background:linear-gradient(var(--menuGlow) 0,transparent 190px),linear-gradient(var(--menuShade),var(--menuShade)),url(menu-dikey.webp) center/cover no-repeat}
 @media (min-aspect-ratio:1/1){body.menu::before{background-image:linear-gradient(var(--menuGlow) 0,transparent 190px),linear-gradient(var(--menuShade),var(--menuShade)),url(menu-yatay.webp)}}
-body.menu section h1,body.menu section .sub{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--menuGlow)}
-body.menu section .sub{color:var(--ink);font-weight:600}
+body.menu section h1{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--menuGlow)}
 body.menu section .card{box-shadow:0 6px 20px rgba(10,25,32,.28)}
 .wrap{max-width:460px;margin:0 auto;padding:10px 12px 14px;min-height:100%;display:flex;flex-direction:column;gap:8px}
 h1{font-family:"Alfa Slab One",Georgia,serif;font-weight:400;font-size:2.3rem;line-height:1;margin:6px 0 2px}
 /* logo: taçlı zar ve DICEMPIRE yazısı, arka planı şeffaf */
-h1.logo{margin:2px 0 4px;line-height:0}
+h1.logo{margin:2px 0 10px;line-height:0}
 .logo img{display:block;width:auto;height:auto;max-width:min(100%,300px);max-height:30vh;margin:0 auto;filter:drop-shadow(0 6px 12px rgba(10,25,32,.35))}
 .logo.sm img{max-width:min(100%,190px);max-height:20vh}
-.logo+.sub{text-align:center}
-.sub{color:var(--muted);margin:0 0 12px;font-size:.92rem}
 button{font-family:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
 .btn{background:var(--btn);color:var(--btnText);border:0;border-radius:10px;padding:11px 14px;font-weight:800;font-size:.98rem}
@@ -175,7 +172,6 @@ h3{margin:0 0 6px;font-size:.98rem}
 
   <section id="home">
     <h1 class="logo"><img src="logo.webp" width="880" height="653" alt="Dicempire"></h1>
-    <p class="sub">Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.</p>
     <div class="card stack">
       <p class="invite hide" id="invite"></p>
       <div>
@@ -204,7 +200,6 @@ h3{margin:0 0 6px;font-size:.98rem}
 
   <section id="lobby" class="hide">
     <h1 class="logo sm"><img src="logo.webp" width="880" height="653" alt="Dicempire"></h1>
-    <p class="sub">Arkadaşların bu kodla ya da davet linkiyle katılır.</p>
     <div class="card">
       <p class="lbl" style="text-align:center;margin:0">Oda kodu</p>
       <div class="bigcode" id="roomCode"></div>
