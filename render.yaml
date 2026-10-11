@@ -1,0 +1,16 @@
+# Render Blueprint: oyunun sunucusu. Mağaza uygulaması bu sunucuya bağlanır, bu yüzden
+# ücretsiz plan (boşta uyuyan, ilk açılışı 30-60 sn süren) yerine her zaman açık "starter" plan.
+# Odalar bellekte tutulur: her deploy açık odaları kapatır, deploy'u yoğun saatlerde yapma.
+services:
+  - type: web
+    name: dicempire
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

@@ -1,0 +1,19 @@
+{
+  "appId": "com.dicempire.game",
+  "appName": "Dicempire",
+  "webDir": "www",
+  "backgroundColor": "#0f1a33",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

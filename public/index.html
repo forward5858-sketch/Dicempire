@@ -446,10 +446,12 @@ async function handle(m){
   }
 }
 
-/* Sıra sana gelince kısa titreşim: uygulamada yerel dokunsal geri bildirim (iOS'ta navigator.vibrate yok) */
+/* Sıra sana gelince kısa titreşim: uygulamada yerel dokunsal geri bildirim (iOS'ta navigator.vibrate yok).
+   Paketleyici olmadığı için eklenti burada kaydedilir; kayıt yerel tarafın Haptics'ine bağlanır. */
+const Haptics=APP&&window.Capacitor.registerPlugin
+  ?(window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics)||window.Capacitor.registerPlugin("Haptics"):null;
 function buzz(){
-  const H=APP&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
-  if(H)H.impact({style:"MEDIUM"}).catch(()=>{});
+  if(Haptics)Haptics.impact({style:"MEDIUM"}).catch(()=>{});
   else if(navigator.vibrate)navigator.vibrate(120);
 }
 

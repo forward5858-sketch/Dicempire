@@ -1,0 +1,54 @@
+# Her push'ta: testler, Android debug derlemesi ve iOS simülatör derlemesi (imzasız).
+# Amaç mağaza paketini üretmek değil, iki yerel projenin derlendiğini her değişiklikte görmek.
+# Sunucu adresi depo değişkeni DICEMPIRE_SERVER'dan gelir (Settings > Secrets and variables > Actions > Variables).
+name: app
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DICEMPIRE_SERVER: ${{ vars.DICEMPIRE_SERVER || 'https://dicempire.onrender.com' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm run sync
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dicempire-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  ios:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run sync
+      - run: >
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build
