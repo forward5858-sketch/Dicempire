@@ -8,6 +8,7 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - `public/rules.js` oyunun kurallarıdır; sunucu ve tarayıcı aynı dosyayı kullanır.
 - `public/index.html` ana menü, lobi ve oyun ekranıdır.
 - Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır.
+- Yazı tipleri (Rubik ve Alfa Slab One, SIL Open Font License) `public/fonts/` klasöründedir; oyun dışarıdan hiçbir dosya yüklemez.
 - Ana menü arka planı `public/menu-dikey.webp` (dikey ekran) ve `public/menu-yatay.webp` (yatay ekran) dosyalarından gelir.
 
 ### Bağlantı kopunca
