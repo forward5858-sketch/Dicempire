@@ -8,7 +8,7 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - `public/rules.js` oyunun kurallarıdır; sunucu ve tarayıcı aynı dosyayı kullanır.
 - `public/index.html` ana menü, lobi ve oyun ekranıdır.
 - `public/i18n.js` oyundaki bütün metinlerin çevirileridir.
-- Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır.
+- Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır; `en.html` aynı politikanın İngilizcesidir. İkisi birbirine bağlantı verir, birini değiştirirsen ötekini de güncelle.
 - Ana menü arka planı `public/menu-dikey.webp` (dikey ekran) ve `public/menu-yatay.webp` (yatay ekran) dosyalarından gelir.
 
 ### Bağlantı kopunca
