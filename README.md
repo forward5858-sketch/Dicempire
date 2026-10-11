@@ -7,6 +7,7 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - `server.js` hem oyun sayfasını dağıtır hem de odaları ve oyunu WebSocket üzerinden yönetir. Zarları sunucu atar, her hamleyi sunucu kontrol eder; telefonlar sadece dokunuşları gönderir ve gelen durumu çizer.
 - `public/rules.js` oyunun kurallarıdır; sunucu ve tarayıcı aynı dosyayı kullanır.
 - `public/index.html` ana menü, lobi ve oyun ekranıdır.
+- `public/i18n.js` oyundaki bütün metinlerin çevirileridir.
 - Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır.
 - Ana menü arka planı `public/menu-dikey.webp` (dikey ekran) ve `public/menu-yatay.webp` (yatay ekran) dosyalarından gelir.
 
@@ -17,6 +18,12 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - Lobide bağlantısı kopan oyuncu 1 dakika içinde dönmezse listeden çıkar. Oda sahibi düşerse yetki bağlı olan ilk oyuncuya geçer.
 - Oyun sırasında "Odadan çık" diyen oyuncunun alanları tarafsız olur. Tek oyuncu kalırsa o kazanır.
 - Kimse bağlı değilse oda 10 dakika sonra silinir. Odalar sunucunun belleğinde tutulur; sunucu yeniden başlarsa açık odalar kapanır.
+
+## Dil desteği
+
+Oyun Türkçe, İngilizce, Almanca, İspanyolca, Fransızca ve Rusça oynanabilir. İlk açılışta telefonun diline göre seçilir (desteklenmeyen bir dilse İngilizce açılır). Ana menüdeki, lobideki ve oyun içindeki ℹ️ penceresindeki 🌐 menüsünden istenildiği an değiştirilebilir; seçim cihazda hatırlanır. Aynı odadaki herkes kendi dilinde oynar: sunucu metin değil, anahtar ve sayılar gönderir (hata kodları, savaş günlüğü kayıtları), her telefon bunları kendi dilinde yazar.
+
+Yeni dil eklemek için `public/i18n.js` dosyasında `LANGS` listesine dilin adını, `DICT` içine de Türkçe sözlükteki bütün anahtarları içeren yeni bir sözlük ekle. `npm test` eksik ya da fazla anahtarları ve yanlış yer tutucuları yakalar.
 
 ## Bilgisayarda çalıştırma
 

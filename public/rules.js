@@ -1,13 +1,15 @@
 /* Dicempire kuralları. Sunucu (Node) ve tarayıcı aynı dosyayı kullanır:
-   oyunu sadece sunucu yürütür, tarayıcı bu dosyayı durumu çizmek için okur. */
+   oyunu sadece sunucu yürütür, tarayıcı bu dosyayı durumu çizmek için okur.
+   Burada oyuncuya gösterilen metin yok: günlük kayıtları anahtar ve değerlerle tutulur,
+   tarayıcı bunları seçilen dilde yazar (bkz. i18n.js). */
 (function(root){
 "use strict";
-const COLORS=[{c:"#d6453d",n:"Kızıl"},{c:"#2f6fd6",n:"Mavi"},{c:"#2e9e5b",n:"Yeşil"},{c:"#d9931a",n:"Altın"}];
+const COLORS=[{c:"#d6453d"},{c:"#2f6fd6"},{c:"#2e9e5b"},{c:"#d9931a"}];
 const NEUTRAL="#d3d8da";
 const TER={
-  o:{e:"🌾",n:"Ova",d:"Buradan saldırınca zarına +1",neu:1},
-  d:{e:"⛰️",n:"Dağ",d:"Savunurken zarına +1",neu:2},
-  s:{e:"🏙️",n:"Şehir",d:"Her tur +2 asker",neu:2}
+  o:{e:"🌾",neu:1},   // ova: buradan saldırınca zara +1
+  d:{e:"⛰️",neu:2},   // dağ: savunurken zara +1
+  s:{e:"🏙️",neu:2}    // şehir: her tur +2 asker
 };
 /* Halka: j1 ve j2 köprü kapıları (dağ), j4-j5 oyuncunun başlangıç alanları.
    Diziliş adanın dış eksenine göre aynalı: j1↔j2, j0↔j3, j4↔j5.
@@ -61,17 +63,16 @@ function newGame(names){
     HOME.forEach(j=>Object.assign(home[1+j],{owner:p,troops:START.side}));
   });
   const S={tiles:M.tiles,bridges:M.bridges,hexSize:M.s,
-     regionNames:names.map(nm=>`${nm} Adası`),
+     regions:n,                                         // her oyuncunun adası bir bölge
      players:names.map((nm,i)=>({name:nm,color:COLORS[i].c,alive:true,left:false})),
      cur:0,turn:1,phase:"reinforce",pool:0,sel:null,tgt:null,move:null,dice:null,log:[],
      busy:false,blitz:false,stop:false,winner:null,winReason:null};
   S.pool=calcReinf(S,0);
-  addLog(S,`${n} ada kuruldu, her adada 7 alan. Herkes şehir üssü ve arkadaki iki alanla başlıyor; komşulara uzaklıklar eşit.`);
+  addLog(S,"start",{n});
   return S;
 }
 
 const owned=(S,p)=>S.tiles.filter(t=>t.owner===p);
-const ownerName=(S,o)=>o<0?"Tarafsız":S.players[o].name;
 const ownerColor=(S,o)=>o<0?NEUTRAL:S.players[o].color;
 const winNeed=S=>Math.ceil(S.tiles.length*WIN_SHARE);
 const neighbors=(S,t)=>t.nb.map(i=>S.tiles[i]);
@@ -83,18 +84,19 @@ function regionOwner(S,ri){
 function calcReinf(S,p){
   const mine=owned(S,p);
   let n=Math.max(3,Math.ceil(mine.length/2))+mine.filter(t=>t.t==="s").length*2;
-  S.regionNames.forEach((_,i)=>{if(regionOwner(S,i)===p)n+=REGION_BONUS;});
+  for(let i=0;i<S.regions;i++)if(regionOwner(S,i)===p)n+=REGION_BONUS;
   return n;
 }
+/* Takviyenin nereden geldiği: temel, şehirlerden gelen ve tamamı ele geçen adalar (her biri REGION_BONUS) */
 function reinfBreakdown(S,p){
-  const mine=owned(S,p),parts=[`${Math.max(3,Math.ceil(mine.length/2))} temel`];
-  const c=mine.filter(t=>t.t==="s").length;if(c)parts.push(`${c*2} şehir`);
-  S.regionNames.forEach((nm,i)=>{if(regionOwner(S,i)===p)parts.push(`${REGION_BONUS} ${nm}`);});
-  return parts.join(" + ");
+  const mine=owned(S,p),islands=[];
+  for(let i=0;i<S.regions;i++)if(regionOwner(S,i)===p)islands.push(i);
+  return {base:Math.max(3,Math.ceil(mine.length/2)),city:mine.filter(t=>t.t==="s").length*2,islands};
 }
 const atkBonus=t=>t.t==="o"?1:0;
 const defBonus=t=>t.t==="d"?1:0;
-function addLog(S,s){S.log.unshift(s);S.log=S.log.slice(0,40);}
+/* Günlük kaydı: k anahtarı ve değerler; p, from gibi alanlar oyuncu koltuğudur */
+function addLog(S,k,v){S.log.unshift({k,...v});S.log=S.log.slice(0,40);}
 
 /* Zar sonucu, alanların o anki sahipleriyle birlikte saklanır; alan el değiştirse de zarlar doğru çizilir */
 function rollOnce(S){
@@ -116,8 +118,8 @@ function afterBattle(S){
   const a=S.tiles[S.sel],d=S.tiles[S.tgt];
   if(d.troops<=0){
     const loser=d.owner;d.owner=S.cur;
-    addLog(S,`${S.players[S.cur].name}, ${TER[d.t].n.toLowerCase()} alanını ${loser<0?"tarafsızlardan":ownerName(S,loser)+" oyuncusundan"} aldı.`);
-    if(loser>=0&&owned(S,loser).length===0){S.players[loser].alive=false;addLog(S,`${S.players[loser].name} oyundan çıktı.`);}
+    addLog(S,"conquer",{p:S.cur,ter:d.t,from:loser});
+    if(loser>=0&&owned(S,loser).length===0){S.players[loser].alive=false;addLog(S,"out",{p:loser});}
     const wipe=aliveSeats(S).length===1;
     if(wipe||owned(S,S.cur).length>=winNeed(S)){
       d.troops=a.troops-1;a.troops=1;declareWin(S,S.cur,wipe?"wipe":"share");return;}
@@ -129,7 +131,7 @@ function nextTurn(S){
   let n=S.cur;do{n=(n+1)%S.players.length;}while(!S.players[n].alive);
   Object.assign(S,{cur:n,turn:S.turn+1,phase:"reinforce",sel:null,tgt:null,move:null,dice:null,busy:false,blitz:false,stop:true});
   S.pool=calcReinf(S,n);
-  addLog(S,`Sıra ${S.players[n].name} oyuncusunda: ${S.pool} asker (${reinfBreakdown(S,n)}).`);
+  addLog(S,"turn",{p:n,n:S.pool,b:reinfBreakdown(S,n)});
 }
 /* Alınan alana asker taşıma yarım kaldıysa (sıra geçildi ya da oyuncu çıktı) seçili sayıyla bitir */
 function finishPendingMove(S){
@@ -145,7 +147,7 @@ function tap(S,id){
   if(S.phase==="reinforce"){
     if(t.owner!==S.cur||S.pool<=0)return false;
     t.troops++;S.pool--;
-    if(S.pool===0){S.phase="attack";addLog(S,`${S.players[S.cur].name} askerlerini yerleştirdi.`);}
+    if(S.pool===0){S.phase="attack";addLog(S,"placed",{p:S.cur});}
     return true;
   }
   if(S.phase==="fortify"){
@@ -179,12 +181,12 @@ function moveOk(S){
   const a=S.tiles[m.from],d=S.tiles[m.to];
   if(m.kind==="conquer"){
     d.troops=m.n;a.troops-=m.n;
-    addLog(S,`${S.players[S.cur].name} yeni alana ${m.n} asker taşıdı.`);
+    addLog(S,"moveIn",{p:S.cur,n:m.n});
     S.move=null;S.phase="attack";S.tgt=null;S.dice=null;
     S.sel=d.troops>=2?d.id:(a.troops>=2?a.id:null);
   }else{
     a.troops-=m.n;d.troops+=m.n;
-    addLog(S,`${S.players[S.cur].name} ${m.n} askeri komşu alanına taşıdı.`);nextTurn(S);
+    addLog(S,"fortify",{p:S.cur,n:m.n});nextTurn(S);
   }
   return true;
 }
@@ -201,7 +203,7 @@ function next(S){
 /* Bağlantısı kopan oyuncunun sırası geçilir */
 function skipTurn(S){
   finishPendingMove(S);
-  addLog(S,`${S.players[S.cur].name} bağlantıda değil, sırası geçildi.`);
+  addLog(S,"skip",{p:S.cur});
   nextTurn(S);
 }
 /* Oyundan ayrılan oyuncunun alanları içindeki askerlerle tarafsız olur */
@@ -210,14 +212,14 @@ function removePlayer(S,p){
   if(S.cur===p)finishPendingMove(S);
   pl.alive=false;pl.left=true;
   S.tiles.forEach(t=>{if(t.owner===p)t.owner=-1;});
-  addLog(S,`${pl.name} oyundan ayrıldı; alanları tarafsız oldu.`);
+  addLog(S,"left",{p});
   const alive=aliveSeats(S);
   if(alive.length===1){declareWin(S,alive[0],"left");return;}
   if(S.cur===p)nextTurn(S);
 }
 
 const api={COLORS,NEUTRAL,TER,REGION_BONUS,WIN_SHARE,MIN_PLAYERS,MAX_PLAYERS,
-  buildIslands,newGame,owned,ownerName,ownerColor,winNeed,neighbors,aliveSeats,regionOwner,calcReinf,reinfBreakdown,
+  buildIslands,newGame,owned,ownerColor,winNeed,neighbors,aliveSeats,regionOwner,calcReinf,reinfBreakdown,
   atkBonus,defBonus,addLog,rollOnce,applyRoll,afterBattle,nextTurn,tap,moveStep,moveOk,moveCancel,next,skipTurn,removePlayer};
 if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.Rules=api;
 })(this);

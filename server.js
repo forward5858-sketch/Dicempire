@@ -147,20 +147,21 @@ function blitz(room){
       broadcastState(room,"blitz");
       setTimeout(step,BLITZ_STEP_MS);return;
     }
-    R.addLog(S,`${S.players[cur].name} saldırdı: ${lostA} kayıp verdi, ${lostD} asker yok etti.`);
+    R.addLog(S,"blitz",{p:cur,lost:lostA,killed:lostD});
     S.busy=false;S.blitz=false;R.afterBattle(S);
     broadcastState(room);checkAway(room);
   };
   step();
 }
 
-/* ---------- mesajlar ---------- */
+/* ---------- mesajlar ----------
+   Hatalar metin değil anahtar olarak gider (key), tarayıcı oyuncunun dilinde yazar. */
 function onMessage(ws,m){
   const ctx=ws.ctx;
   switch(m.t){
     case "create":{
       if(ctx)return;
-      if(rooms.size>=MAX_ROOMS)return send(ws,{t:"error",msg:"Sunucu şu an çok dolu, biraz sonra tekrar dene."});
+      if(rooms.size>=MAX_ROOMS)return send(ws,{t:"error",key:"busy"});
       const room={code:newCode(),players:[],hostId:null,status:"lobby",S:null};
       rooms.set(room.code,room);
       addPlayer(room,ws,m.name);
@@ -169,9 +170,9 @@ function onMessage(ws,m){
     case "join":{
       if(ctx)return;
       const room=rooms.get(String(m.code||"").toUpperCase().trim());
-      if(!room)return send(ws,{t:"error",msg:"Böyle bir oda yok. Kodu kontrol et."});
-      if(room.status!=="lobby")return send(ws,{t:"error",msg:"Bu odada oyun başlamış, şu an katılamazsın."});
-      if(room.players.length>=R.MAX_PLAYERS)return send(ws,{t:"error",msg:`Oda dolu (en fazla ${R.MAX_PLAYERS} kişi).`});
+      if(!room)return send(ws,{t:"error",key:"noRoom"});
+      if(room.status!=="lobby")return send(ws,{t:"error",key:"started"});
+      if(room.players.length>=R.MAX_PLAYERS)return send(ws,{t:"error",key:"full",n:R.MAX_PLAYERS});
       addPlayer(room,ws,m.name);
       return;
     }
@@ -179,7 +180,7 @@ function onMessage(ws,m){
       if(ctx)return;
       const room=rooms.get(String(m.code||""));
       const p=room&&room.players.find(x=>x.token===m.token);
-      if(!p)return send(ws,{t:"error",code:"resume",msg:"Oda kapanmış. Yeni bir oda kurabilir ya da başka odaya katılabilirsin."});
+      if(!p)return send(ws,{t:"error",key:"resume"});
       attach(room,p,ws);
       broadcastRoom(room);
       if(room.S)send(ws,{t:"state",S:room.S,roll:null});
