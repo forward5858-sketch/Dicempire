@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dicempire — Zar ve Toprak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sea:#bcd9e0; --sea2:#a6ccd5; --ink:#15313d; --muted:#4f6b76; --panel:#f6fbfc; --line:#8fb7c1;
+  --water:#9ec5cf; --btn:#15313d; --btnText:#fff; --glow:#ffe066;
+  --menuShade:rgba(246,251,252,0); --menuGlow:rgba(246,251,252,.85);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sea:#10262f; --sea2:#0c1e25; --ink:#e4f1f4; --muted:#8eaab3; --panel:#173540; --line:#2b5463;
+  --water:#15323d; --btn:#e4f1f4; --btnText:#10262f; --glow:#ffd43b;
+  --menuShade:rgba(10,25,32,.55); --menuGlow:rgba(10,25,32,.9);}}
+:root[data-theme="dark"]{--sea:#10262f;--sea2:#0c1e25;--ink:#e4f1f4;--muted:#8eaab3;--panel:#173540;--line:#2b5463;--water:#15323d;--btn:#e4f1f4;--btnText:#10262f;--glow:#ffd43b;--menuShade:rgba(10,25,32,.55);--menuGlow:rgba(10,25,32,.9)}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--sea);color:var(--ink);font-family:"Rubik",system-ui,sans-serif;
+  background-image:repeating-linear-gradient(135deg,transparent 0 14px,var(--sea2) 14px 15px)}
+/* ana menü arka planı: dikeyde dikey, yatayda yatay görsel; karanlık modda üstü koyulaşır */
+body.menu::before{content:"";position:fixed;inset:0;z-index:-1;
+  background:linear-gradient(var(--menuGlow) 0,transparent 190px),linear-gradient(var(--menuShade),var(--menuShade)),url(menu-dikey.webp) center/cover no-repeat}
+@media (min-aspect-ratio:1/1){body.menu::before{background-image:linear-gradient(var(--menuGlow) 0,transparent 190px),linear-gradient(var(--menuShade),var(--menuShade)),url(menu-yatay.webp)}}
+body.menu section h1,body.menu section .sub{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--menuGlow)}
+body.menu section .sub{color:var(--ink);font-weight:600}
+body.menu section .card{box-shadow:0 6px 20px rgba(10,25,32,.28)}
+.wrap{max-width:460px;margin:0 auto;padding:10px 12px 14px;min-height:100%;display:flex;flex-direction:column;gap:8px}
+h1{font-family:"Alfa Slab One",Georgia,serif;font-weight:400;font-size:2.3rem;line-height:1;margin:6px 0 2px}
+.sub{color:var(--muted);margin:0 0 12px;font-size:.92rem}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+.btn{background:var(--btn);color:var(--btnText);border:0;border-radius:10px;padding:11px 14px;font-weight:800;font-size:.98rem}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+h3{margin:0 0 6px;font-size:.98rem}
+
+.sw{width:24px;height:24px;border-radius:50%;flex:none;border:3px solid var(--panel);box-shadow:0 0 0 2px var(--ink)}
+/* ana menü ve lobi */
+.lbl{display:block;font-weight:800;font-size:.9rem;margin:0 0 6px}
+.field{width:100%;min-width:0;padding:11px 12px;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:1rem}
+.field.code{text-transform:uppercase;letter-spacing:.3em;font-weight:800;text-align:center}
+.field.code::placeholder{letter-spacing:.3em}
+.wide{width:100%}
+.stack{display:flex;flex-direction:column;gap:12px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.or::before,.or::after{content:"";flex:1;border-top:2px solid var(--line)}
+.err{color:#e03131;font-weight:600;font-size:.9rem;margin:0;min-height:1.2em}
+.invite{background:var(--glow);color:#15313d;border-radius:10px;padding:9px 12px;font-weight:600;margin:0}
+.bigcode{font-family:"Alfa Slab One",Georgia,serif;font-size:3rem;letter-spacing:.12em;line-height:1;text-align:center;margin:4px 0 12px}
+.plist{list-style:none;margin:6px 0 10px;padding:0;display:grid;gap:8px}
+.plist li{display:flex;align-items:center;gap:10px;font-weight:600}
+.plist .tag{margin-left:auto;font-size:.78rem;color:var(--muted);font-weight:600}
+.plist .off{opacity:.5}
+.net{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:20;
+  background:#e03131;color:#fff;font-weight:700;font-size:.85rem;padding:7px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+#panel.myturn{border-color:var(--ink);box-shadow:0 0 0 3px var(--glow)}
+.rules{font-size:.88rem;line-height:1.5;color:var(--muted)}
+.rules b{color:var(--ink)}.rules p{margin:0 0 8px}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.turn{display:flex;align-items:center;gap:9px;min-width:0}
+.turn .who{font-family:"Alfa Slab One",Georgia,serif;font-size:1.15rem;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turn .ph{font-size:.78rem;color:var(--muted)}
+.icons{display:flex;gap:6px;flex:none}
+.icons button{width:38px;height:38px;border-radius:10px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.05rem;padding:0}
+
+/* bal peteği tahta */
+.board{position:relative;width:100%;max-width:360px;margin:0 auto;aspect-ratio:1;border-radius:18px;
+  background:var(--water);user-select:none;container-type:inline-size;overflow:hidden}
+.bridges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hex{position:absolute;border:0;padding:0;background:transparent;
+  transform:translate(-50%,-50%) rotate(var(--rot,0deg));transition:filter .15s}
+.hex .shape{width:100%;height:100%;display:grid;place-items:center;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  background:var(--fill);box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.hex .inner{transform:rotate(calc(-1 * var(--rot,0deg)));display:flex;flex-direction:column;align-items:center;color:#fff;line-height:1.05}
+.hex.neutral .inner{color:#3d4a4f}
+.hex .tr{font-weight:800;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.hex.neutral .tr{text-shadow:none}
+.hex.mine{cursor:pointer}
+.hex.sel{filter:drop-shadow(0 0 2px var(--glow)) drop-shadow(0 0 6px var(--glow));z-index:3}
+.hex.tgt{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 7px #e03131);z-index:3}
+.hex.hit{cursor:pointer;animation:hitp 1s infinite alternate;z-index:2}
+.hex.dim{filter:saturate(.55) brightness(.85)}
+@keyframes hitp{from{filter:drop-shadow(0 0 1px #fff)}to{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 7px #fff)}}
+.hitfx{position:absolute;top:-2px;right:-2px;background:#e03131;color:#fff;border-radius:10px;font-size:.7rem;font-weight:800;padding:1px 6px;
+  animation:pop .9s ease-out forwards;pointer-events:none;z-index:4}
+@keyframes pop{0%{opacity:0}20%{opacity:1}100%{opacity:0;translate:0 -10px}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;font-size:.76rem}
+.chip{display:flex;align-items:center;gap:5px;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:3px 9px;font-weight:600;white-space:nowrap;max-width:100%}
+.chip i{width:9px;height:9px;border-radius:50%;display:block;flex:none}
+.chip.now{border-color:var(--ink)}
+.chip.out{opacity:.4;text-decoration:line-through}
+
+.hint{font-size:.9rem;margin:0 0 8px;min-height:2.4em}
+.dice{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px}
+.dside{text-align:center;font-size:.75rem;color:var(--muted);min-width:86px}
+.die{width:58px;height:58px;border-radius:14px;margin:0 auto 5px;color:#fff;box-shadow:inset 0 -5px 0 rgba(0,0,0,.25);
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:9px;gap:2px;transition:box-shadow .2s,opacity .2s}
+.die.q{display:grid;grid-template:1fr/1fr;place-items:center;padding:0;font-size:1.7rem;font-weight:800}
+.pip{width:10px;height:10px;border-radius:50%;background:#fff;place-self:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.die.neu .pip{background:#3d4a4f}
+.die.rolling{animation:tumble .32s linear infinite}
+.die.land{animation:land .35s ease-out}
+.die.win{box-shadow:0 0 0 4px var(--glow),inset 0 -5px 0 rgba(0,0,0,.25)}
+.die.lose{opacity:.45}
+@keyframes tumble{25%{transform:translateY(-10px) rotate(90deg)}50%{transform:translateY(0) rotate(180deg)}75%{transform:translateY(-6px) rotate(270deg)}100%{transform:translateY(0) rotate(360deg)}}
+@keyframes land{0%{transform:scale(1.22)}60%{transform:scale(.93)}100%{transform:scale(1)}}
+.tot{font-size:.92rem;color:var(--ink);font-weight:800}
+.vs{font-family:"Alfa Slab One",Georgia,serif;font-size:1.05rem}
+.res{text-align:center;font-weight:800;min-height:1.35em;margin:0 0 8px;font-size:.92rem}
+.mv{display:flex;align-items:center;justify-content:center;gap:16px;margin:2px 0 10px}
+.step{width:50px;height:50px;padding:0;font-size:1.5rem}
+.mvn{text-align:center;min-width:76px}
+.mvn span{display:block;font-family:"Alfa Slab One",Georgia,serif;font-size:2.1rem;line-height:1}
+.mvn small{color:var(--muted);font-size:.76rem}
+@media (prefers-reduced-motion:reduce){.hex.hit{animation:none}.die.rolling,.die.land,.hitfx{animation:none}}
+
+.over{position:fixed;inset:0;background:rgba(10,25,32,.72);display:grid;place-items:center;padding:16px;z-index:10;overflow:auto}
+.over .card{max-width:400px;width:100%;max-height:86vh;overflow:auto}
+.over h2{font-family:"Alfa Slab One",Georgia,serif;font-weight:400;font-size:1.9rem;margin:4px 0 8px}
+.legend{display:grid;gap:6px;font-size:.85rem;margin-bottom:12px}
+.legend div{display:flex;gap:8px}
+.regions{font-size:.85rem;display:grid;gap:4px;margin-bottom:12px}
+.regions div{display:flex;justify-content:space-between;gap:8px}
+.log{max-height:150px;overflow:auto;font-size:.8rem;line-height:1.45;color:var(--muted);margin:0;padding-left:18px}
+/* düzen: dikeyde alt alta, yatayda harita solda panel sağda */
+#game{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+.stage{display:flex;align-items:center;justify-content:center;min-height:0}
+.rotate{margin:0;font-size:.78rem;color:var(--muted);text-align:center}
+#game .top{order:1}#game .chips{order:2}#game .rotate{order:3}#game .stage{order:4}#game .card{order:5}
+@media (min-aspect-ratio:1/1){
+  html,body{overflow:hidden}
+  .wrap{max-width:none;height:100%;padding:8px 10px;gap:10px}
+  #game{flex-direction:row;align-items:stretch;gap:12px}
+  #game .side{order:2;display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;overflow:auto}
+  #game .stage{order:1;flex:none;height:100%}
+  .board{max-width:none;height:100%;width:auto;aspect-ratio:1}
+  .rotate{display:none}
+  #home,#lobby{width:100%;max-width:460px;margin:0 auto;min-height:0;overflow:auto}
+  .die{width:48px;height:48px;padding:7px}
+  .pip{width:8px;height:8px}
+  .hint{min-height:0}
+  .chips{font-size:.72rem}
+}
+@media (max-aspect-ratio:1/1){#game .side{display:contents}}
+.hide{display:none!important}
+</style>
+</head>
+<body class="menu">
+<div class="net hide" id="net" role="status">Bağlantı koptu, yeniden bağlanılıyor…</div>
+<div class="wrap">
+
+  <section id="home">
+    <h1>Dicempire</h1>
+    <p class="sub">Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.</p>
+    <div class="card stack">
+      <p class="invite hide" id="invite"></p>
+      <div>
+        <label class="lbl" for="nameIn">Adın</label>
+        <input class="field" id="nameIn" maxlength="14" placeholder="Örn. Ayşe" autocomplete="nickname">
+      </div>
+      <button class="btn wide" id="createBtn">Oda kur</button>
+      <div class="or">ya da koda katıl</div>
+      <div class="row">
+        <input class="field code" id="codeIn" maxlength="4" placeholder="KOD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Oda kodu">
+        <button class="btn ghost" id="joinBtn" style="flex:none">Katıl</button>
+      </div>
+      <p class="err" id="homeErr" role="alert"></p>
+    </div>
+    <div class="card rules" style="margin-top:10px">
+      <h3 style="color:var(--ink)">Nasıl oynanır</h3>
+      <p><b>Oda:</b> Biri oda kurar, davet linkini ya da 4 harfli kodu arkadaşlarına gönderir. 2–4 kişi toplanınca oda sahibi oyunu başlatır.</p>
+      <p><b>Harita:</b> Herkesin 7 altıgenlik bal peteği adası var. Adalar merkez etrafında tam simetrik dizilir.</p>
+      <p><b>Eşit cepheler:</b> Her adanın iki köprü kapısı var ve ikisi de üssüne aynı uzaklıkta, aynı arazide (dağ kapısı). Yani komşularından hiçbiri "şuraya giden yol daha kolay" diyemez.</p>
+      <p><b>Takviye:</b> Sıran gelince asker kazanırsın, kendi alanlarına dokunarak yerleştirirsin.</p>
+      <p><b>Saldırı:</b> En az 2 askerli alanını seç, komşu alana dokun. İki taraf zar atar, büyük olan kazanır, eşitlikte savunan kazanır. Zar farkı 3+ ise kaybeden 2 asker kaybeder.</p>
+      <p><b>Taşıma:</b> Alanı alınca kaç askerle gireceğini seçersin. Saldırı bitince bir kez komşu alanların arasında asker taşıyabilirsin.</p>
+      <p><b>Kazanmak:</b> Haritanın %60'ını alan ya da rakiplerini eleyen kazanır.</p>
+    </div>
+  </section>
+
+  <section id="lobby" class="hide">
+    <h1>Dicempire</h1>
+    <p class="sub">Arkadaşların bu kodla ya da davet linkiyle katılır.</p>
+    <div class="card">
+      <p class="lbl" style="text-align:center;margin:0">Oda kodu</p>
+      <div class="bigcode" id="roomCode"></div>
+      <div class="stack" style="gap:8px">
+        <button class="btn wide" id="shareBtn">Arkadaşlarını davet et</button>
+        <div class="row">
+          <button class="btn ghost" id="waBtn">WhatsApp</button>
+          <button class="btn ghost" id="copyBtn">Linki kopyala</button>
+        </div>
+      </div>
+      <p class="rules" id="shareNote" aria-live="polite" style="margin:8px 0 0;min-height:1.2em;text-align:center"></p>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <h3>Oyuncular <span id="pCount" style="color:var(--muted)"></span></h3>
+      <ul class="plist" id="pList"></ul>
+      <p class="rules" id="lobbyNote" style="margin:0 0 10px"></p>
+      <button class="btn wide" id="startBtn">Oyunu başlat</button>
+      <p class="rules hide" id="waitNote" style="margin:0;text-align:center">Oda sahibinin oyunu başlatması bekleniyor…</p>
+    </div>
+    <button class="btn ghost wide" id="leaveLobbyBtn" style="margin-top:10px">Odadan çık</button>
+  </section>
+
+  <section id="game" class="hide">
+    <div class="stage"><div class="board" id="board"></div></div>
+    <div class="side">
+    <div class="top">
+      <div class="turn">
+        <span class="sw" id="curSw"></span>
+        <div><div class="who" id="curName"></div><div class="ph" id="phase"></div></div>
+      </div>
+      <div class="icons">
+        <button id="fsBtn" aria-label="Tam ekran">⛶</button>
+        <button id="infoBtn" aria-label="Bilgi ve günlük">ℹ️</button>
+        <button id="leaveBtn" aria-label="Odadan çık">🚪</button>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <p class="rotate" id="rotate">📱 Telefonu yatay çevirirsen harita büyür.</p>
+    <div class="card" id="panel">
+      <p class="hint" id="hint"></p>
+      <div id="battle">
+        <div class="dice">
+          <div class="dside"><div class="die q" id="dA">?</div><span id="lA">Saldıran</span><div class="tot" id="tA">&nbsp;</div></div>
+          <div class="vs">vs</div>
+          <div class="dside"><div class="die q" id="dD">?</div><span id="lD">Savunan</span><div class="tot" id="tD">&nbsp;</div></div>
+        </div>
+        <div class="res" id="res" aria-live="polite"></div>
+        <div class="row" id="rollRow">
+          <button class="btn" id="rollBtn">Zar at</button>
+          <button class="btn ghost" id="blitzBtn">Sonuna kadar</button>
+        </div>
+      </div>
+      <div id="mover" class="hide">
+        <div class="mv">
+          <button class="btn ghost step" id="minusBtn" aria-label="Azalt">−</button>
+          <div class="mvn"><span id="mvN">1</span><small id="mvRange"></small></div>
+          <button class="btn ghost step" id="plusBtn" aria-label="Artır">+</button>
+        </div>
+        <div class="row" id="mvRow">
+          <button class="btn ghost" id="mvMin">En az</button>
+          <button class="btn ghost" id="mvMax">Hepsi</button>
+          <button class="btn" id="mvOk">Taşı</button>
+        </div>
+        <div class="row" style="margin-top:8px" id="mvCancelRow"><button class="btn ghost" id="mvCancel">Vazgeç</button></div>
+      </div>
+      <div class="row" style="margin-top:8px" id="phaseRow">
+        <button class="btn ghost" id="nextBtn">Taşımaya geç</button>
+      </div>
+    </div>
+    </div>
+  </section>
+</div>
+
+<div class="over hide" id="infoOv">
+  <div class="card">
+    <h3>Oda</h3><p class="rules" id="infoRoom" style="margin:0 0 12px"></p>
+    <h3>Arazi güçleri</h3><div class="legend" id="legend"></div>
+    <h3>Adalar (tamamı senin olursa her tur bonus)</h3><div class="regions" id="regions"></div>
+    <h3>Savaş günlüğü</h3><ol class="log" id="log" reversed></ol>
+    <button class="btn" style="width:100%;margin-top:12px" id="infoClose">Kapat</button>
+  </div>
+</div>
+
+<div class="over hide" id="winOv">
+  <div class="card" style="text-align:center">
+    <div style="font-size:3rem">👑</div>
+    <h2 id="winName"></h2>
+    <p id="winText" style="margin:0 0 14px"></p>
+    <div class="stack" style="gap:8px">
+      <button class="btn" id="againBtn">Lobiye dön, yeni oyun kur</button>
+      <p class="rules hide" id="winWait" style="margin:0">Oda sahibi yeni bir oyun başlatabilir.</p>
+      <button class="btn ghost" id="winLeaveBtn">Odadan çık</button>
+    </div>
+  </div>
+</div>
+
+<script src="rules.js"></script>
+<script>
+const {COLORS,NEUTRAL,TER,REGION_BONUS,MIN_PLAYERS,MAX_PLAYERS}=Rules;
+const $=id=>document.getElementById(id);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const d6=()=>1+Math.floor(Math.random()*6);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const PHASE_NAME={reinforce:"takviye",attack:"saldırı",move:"asker taşıma",fortify:"tur sonu taşıma",over:"oyun bitti"};
+
+/* S: sunucudan gelen oyun durumu, room: oda ve oyuncular, me: benim oyuncu kimliğim */
+let S=null,room=null,me=null;
+const ownerName=o=>Rules.ownerName(S,o);
+const ownerColor=o=>Rules.ownerColor(S,o);
+const owned=p=>Rules.owned(S,p);
+const mySeat=()=>{const p=room&&room.players.find(x=>x.id===me);return p?p.seat:-1;};
+const myTurn=()=>!!S&&S.winner===null&&S.cur===mySeat();
+const isHost=()=>!!room&&room.host===me;
+const inviteLink=code=>`${location.origin}${location.pathname}?oda=${code}`;
+
+/* ---------- oturum: sayfa yenilense ya da bağlantı kopsa da aynı koltuğa dönülür ---------- */
+const store={
+  get(k,area=sessionStorage){try{return JSON.parse(area.getItem(k));}catch(e){return null;}},
+  set(k,v,area=sessionStorage){try{area.setItem(k,JSON.stringify(v));}catch(e){}},
+  del(k,area=sessionStorage){try{area.removeItem(k);}catch(e){}}
+};
+const getSession=()=>store.get("dicempire.session");
+function setUrl(code){try{history.replaceState(null,"",code?`?oda=${code}`:location.pathname);}catch(e){}}
+
+/* ---------- sunucu bağlantısı ---------- */
+let ws=null,retry=0,retryTimer=null;const outbox=[];
+function connect(){
+  if(ws&&ws.readyState<2)return;
+  clearTimeout(retryTimer);
+  ws=new WebSocket(`${location.protocol==="https:"?"wss":"ws"}://${location.host}/ws`);
+  ws.onopen=()=>{
+    retry=0;$("net").classList.add("hide");
+    const s=getSession();if(s)ws.send(JSON.stringify({t:"resume",code:s.code,token:s.token}));
+    outbox.splice(0).forEach(m=>ws.send(JSON.stringify(m)));
+  };
+  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(err){return;}queue=queue.then(()=>handle(m)).catch(err=>console.error(err));};
+  ws.onclose=e=>{
+    ws=null;
+    if(e.code===4000){   // aynı koltuğa başka sekmeden bağlanıldı: iki sekme birbirini atmasın diye bu sekme bırakır
+      store.del("dicempire.session");resetToHome("Bu odaya başka bir sekmeden bağlandın.");return;
+    }
+    if(getSession())$("net").classList.remove("hide");
+    retryTimer=setTimeout(connect,Math.min(8000,500*2**retry++));
+  };
+}
+function send(m){
+  if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));
+  else{outbox.push(m);connect();}
+}
+/* Hamleler kuyruğa alınmaz: bağlantı yokken yapılan dokunuş eski duruma göre olurdu */
+const act=(a,extra)=>{if(myTurn()&&ws&&ws.readyState===1)ws.send(JSON.stringify({t:"act",a,...extra}));};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!ws){retry=0;connect();}});
+
+/* Mesajlar sırayla işlenir: zar animasyonu bitmeden sonraki durum çizilmez */
+let queue=Promise.resolve();
+async function handle(m){
+  if(m.t==="joined"){
+    store.set("dicempire.session",{code:m.code,token:m.token});me=m.id;setUrl(m.code);return;
+  }
+  if(m.t==="room"){
+    const was=room&&room.status;room=m;me=m.you;
+    if(room.status==="lobby"){S=null;showScreen("lobby");renderLobby();}
+    else if(was!=="game"&&S)showScreen("game");
+    if(S&&room.status==="game")render();
+    return;
+  }
+  if(m.t==="state"){
+    const prevTurn=S&&S.turn,first=!S;
+    S=m.S;
+    if(room&&room.status==="game")showScreen("game");
+    if(m.roll&&S.dice)await animateRoll(S.dice,m.roll==="blitz"?300:600);
+    render(m.roll?S.dice:null);
+    if(!first&&myTurn()&&S.turn!==prevTurn&&navigator.vibrate)navigator.vibrate(120);
+    return;
+  }
+  if(m.t==="error"){
+    if(m.code==="resume"){store.del("dicempire.session");resetToHome(m.msg);}
+    else{$("homeErr").textContent=m.msg;}
+  }
+}
+
+/* ---------- ekranlar ---------- */
+function showScreen(name){
+  ["home","lobby","game"].forEach(id=>$(id).classList.toggle("hide",id!==name));
+  document.body.classList.toggle("menu",name!=="game");
+  if(name!=="game")["infoOv","winOv"].forEach(id=>$(id).classList.add("hide"));
+}
+function resetToHome(msg){
+  room=null;S=null;me=null;setUrl(null);
+  showScreen("home");
+  $("homeErr").textContent=msg||"";
+  $("invite").classList.add("hide");
+}
+function leaveRoom(){
+  send({t:"leave"});store.del("dicempire.session");resetToHome("");
+}
+
+/* ---------- ana menü ---------- */
+$("nameIn").value=store.get("dicempire.name",localStorage)||"";
+const myName=()=>{const n=$("nameIn").value.trim();store.set("dicempire.name",n,localStorage);return n;};
+function needName(){
+  if($("nameIn").value.trim())return false;
+  $("homeErr").textContent="Önce adını yaz.";$("nameIn").focus();return true;
+}
+$("createBtn").onclick=()=>{if(needName())return;$("homeErr").textContent="";send({t:"create",name:myName()});};
+$("joinBtn").onclick=()=>{
+  const code=$("codeIn").value.trim().toUpperCase();
+  if(code.length!==4){$("homeErr").textContent="Oda kodu 4 karakter olmalı.";$("codeIn").focus();return;}
+  if(needName())return;
+  $("homeErr").textContent="";send({t:"join",code,name:myName()});
+};
+$("codeIn").oninput=e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");};
+[$("nameIn"),$("codeIn")].forEach(el=>el.addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  ($("codeIn").value.trim()?$("joinBtn"):$("createBtn")).click();
+}));
+
+/* ---------- lobi ---------- */
+function renderLobby(){
+  const P=room.players,n=P.length,host=isHost();
+  $("roomCode").textContent=room.code;
+  $("pCount").textContent=`${n}/${MAX_PLAYERS}`;
+  $("pList").innerHTML=P.map(p=>`<li class="${p.online?'':'off'}"><span class="sw" style="background:${COLORS[p.seat].c}"></span>
+    <span>${esc(p.name)}${p.id===me?" (sen)":""}</span>
+    <span class="tag">${p.id===room.host?"👑 oda sahibi":""}${p.online?"":" · bağlantı yok"}</span></li>`).join("");
+  const total=n*7;
+  $("lobbyNote").innerHTML=n<MIN_PLAYERS?"En az 2 kişi gerekiyor. Davet linkini arkadaşlarına gönder."
+    :`<b>${n} kişilik harita:</b> ${n} ada, her adada 7 altıgen (toplam ${total} alan). Zafer için ${Math.ceil(total*Rules.WIN_SHARE)} alan gerekir.`;
+  $("startBtn").classList.toggle("hide",!host);
+  $("startBtn").disabled=n<MIN_PLAYERS;
+  $("waitNote").classList.toggle("hide",host);
+}
+function note(s){$("shareNote").textContent=s;}
+async function copyLink(){
+  const link=inviteLink(room.code);
+  try{await navigator.clipboard.writeText(link);note("Link kopyalandı. Arkadaşlarına yapıştırıp gönder.");}
+  catch(e){note(link);}
+}
+const inviteText=()=>`Dicempire'da benimle oyna! Oda kodu: ${room.code}`;
+$("shareBtn").onclick=async()=>{
+  if(navigator.share){
+    try{await navigator.share({title:"Dicempire",text:inviteText(),url:inviteLink(room.code)});}catch(e){}
+  }else copyLink();
+};
+$("waBtn").onclick=()=>window.open(`https://wa.me/?text=${encodeURIComponent(`${inviteText()} ${inviteLink(room.code)}`)}`,"_blank","noopener");
+$("copyBtn").onclick=copyLink;
+$("startBtn").onclick=()=>{send({t:"start"});goFullscreen();};
+$("leaveLobbyBtn").onclick=leaveRoom;
+
+/* ---------- oyun etkileşimi: her dokunuş sunucuya gider, sunucu yeni durumu herkese yollar ---------- */
+$("board").onclick=e=>{const b=e.target.closest(".hex");if(b)act("tap",{tile:+b.dataset.id});};
+$("rollBtn").onclick=()=>act("roll");
+$("blitzBtn").onclick=()=>act("blitz");
+$("minusBtn").onclick=()=>act("move",{op:"minus"});
+$("plusBtn").onclick=()=>act("move",{op:"plus"});
+$("mvMin").onclick=()=>act("move",{op:"min"});
+$("mvMax").onclick=()=>act("move",{op:"max"});
+$("mvOk").onclick=()=>act("moveOk");
+$("mvCancel").onclick=()=>act("moveCancel");
+$("nextBtn").onclick=()=>act("next");
+async function goFullscreen(){
+  try{
+    if(!document.fullscreenElement&&document.documentElement.requestFullscreen)
+      await document.documentElement.requestFullscreen({navigationUI:"hide"});
+    if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("landscape");
+  }catch(e){/* iOS gibi desteklemeyen cihazlarda sessizce geç */}
+}
+$("fsBtn").onclick=async()=>{
+  if(document.fullscreenElement){try{await document.exitFullscreen();}catch(e){}}
+  else await goFullscreen();
+};
+$("infoBtn").onclick=()=>$("infoOv").classList.remove("hide");
+$("infoClose").onclick=()=>$("infoOv").classList.add("hide");
+$("leaveBtn").onclick=()=>{
+  const over=S&&S.winner!==null;
+  if(over||confirm("Odadan çıkarsan alanların tarafsız olur ve oyuna geri dönemezsin. Çıkılsın mı?"))leaveRoom();
+};
+$("againBtn").onclick=()=>send({t:"again"});
+$("winLeaveBtn").onclick=leaveRoom;
+
+/* ---------- zarlar ---------- */
+const PIPS={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]};
+function face(el,n){
+  el.classList.remove("q");
+  el.innerHTML=PIPS[n].map(p=>`<span class="pip" style="grid-area:${Math.ceil(p/3)}/${(p-1)%3+1}"></span>`).join("");
+  el.setAttribute("aria-label",`Zar: ${n}`);
+}
+function paintDie(el,owner){
+  el.style.background=owner===null?"var(--line)":ownerColor(owner);
+  el.style.color=owner!==null&&owner<0?"#3d4a4f":"#fff";
+  el.classList.toggle("neu",owner!==null&&owner<0);
+}
+async function animateRoll(r,ms){
+  const A=$("dA"),D=$("dD");
+  $("battle").classList.remove("hide");
+  paintDie(A,r.aOwner);paintDie(D,r.dOwner);
+  [A,D].forEach(el=>{el.classList.remove("win","lose","land","q");el.classList.add("rolling");});
+  $("tA").innerHTML=$("tD").innerHTML="&nbsp;";$("res").textContent="Zarlar atılıyor…";
+  const t0=Date.now();
+  if(!reduceMotion){while(Date.now()-t0<ms){face(A,d6());face(D,d6());await wait(65);}}
+  else await wait(Math.min(ms,200));
+  face(A,r.ra);face(D,r.rd);
+  [A,D].forEach(el=>{el.classList.remove("rolling");void el.offsetWidth;el.classList.add("land");});
+  await wait(reduceMotion?0:140);
+}
+/* Zarlar her zaman durumdan çizilir: son atış varsa onu, yoksa seçili saldırının boş zarlarını gösterir */
+function renderDice(justRolled){
+  const A=$("dA"),D=$("dD"),r=S.dice;
+  let aT=null,dT=null,aO=null,dO=null;
+  if(r){aT=S.tiles[r.a];dT=S.tiles[r.d];aO=r.aOwner;dO=r.dOwner;}
+  else if(S.phase==="attack"&&S.sel!==null&&S.tgt!==null){aT=S.tiles[S.sel];dT=S.tiles[S.tgt];aO=aT.owner;dO=dT.owner;}
+  paintDie(A,aO);paintDie(D,dO);
+  const extra=justRolled?" land":"";
+  if(r){
+    face(A,r.ra);face(D,r.rd);
+    A.className=`die${extra} ${r.win?"win":"lose"}`;
+    D.className=`die${extra} ${r.win?"lose":"win"}${dO<0?" neu":""}`;
+    $("tA").textContent=Rules.atkBonus(aT)?`${r.ra} + 1 = ${r.A}`:`Toplam ${r.A}`;
+    $("tD").textContent=Rules.defBonus(dT)?`${r.rd} + 1 = ${r.D}`:`Toplam ${r.D}`;
+    const crush=r.dmg===2?"Ezici zafer! ":"";
+    $("res").textContent=r.win?`${crush}Saldıran kazandı, ${ownerName(dO)} ${r.dmg} asker kaybetti.`
+      :(r.A===r.D?`Berabere, savunan kazanır. ${ownerName(aO)} 1 asker kaybetti.`
+                :`${crush}Savunan kazandı, ${ownerName(aO)} ${r.dmg} asker kaybetti.`);
+  }else{
+    [A,D].forEach(el=>{el.className="die q"+(el===D&&dO!==null&&dO<0?" neu":"");el.textContent="?";el.removeAttribute("aria-label");});
+    $("tA").innerHTML=$("tD").innerHTML="&nbsp;";$("res").textContent="";
+  }
+  $("lA").textContent=aT?`${TER[aT.t].e} ${ownerName(aO)}${Rules.atkBonus(aT)?" +1":""}`:"Saldıran";
+  $("lD").textContent=dT?`${TER[dT.t].e} ${ownerName(dO)}${Rules.defBonus(dT)?" +1":""}`:"Savunan";
+}
+
+/* ---------- çizim ---------- */
+function chipsHTML(){
+  const mine=mySeat();
+  return S.players.map((p,i)=>{
+    const m=owned(i),tr=m.reduce((s,t)=>s+t.troops,0);
+    return `<span class="chip ${i===S.cur?'now':''} ${p.alive?'':'out'}"><i style="background:${p.color}"></i>${esc(p.name)}${i===mine?" (sen)":""} ${m.length}/${Rules.winNeed(S)} · ${tr}⚔</span>`;
+  }).join("")+`<span class="chip"><i style="background:${NEUTRAL}"></i>Tarafsız ${owned(-1).length}</span>`;
+}
+function render(rolled){
+  if(!S)return;
+  const P=S.players,cur=P[S.cur],mine=myTurn();
+  const curPl=room&&room.players.find(x=>x.seat===S.cur);
+  const away=S.winner===null&&curPl&&!curPl.online;
+  $("curSw").style.background=cur.color;
+  $("curName").textContent=mine?`Sıra sende`:cur.name;
+  $("phase").textContent=S.phase==="reinforce"?`Takviye: ${S.pool} asker`
+    :{attack:"Saldırı",move:"Asker taşıma",fortify:"Tur sonu taşıma",over:"Oyun bitti"}[S.phase];
+  $("panel").classList.toggle("myturn",mine);
+
+  const selT=S.sel!==null?S.tiles[S.sel]:null,mv=S.move;
+  let hits=[];
+  if(selT&&S.phase==="attack")hits=Rules.neighbors(S,selT).filter(n=>n.owner!==S.cur).map(n=>n.id);
+  if(selT&&S.phase==="fortify"&&!mv)hits=Rules.neighbors(S,selT).filter(n=>n.owner===S.cur).map(n=>n.id);
+
+  const w=S.hexSize, hh=w*1.1547, fTr=(w*.42).toFixed(2), fTer=(w*.3).toFixed(2);
+  const bridges=`<svg class="bridges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">`+
+    S.bridges.map(([a,b])=>{const A=S.tiles[a],B=S.tiles[b];
+      return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="var(--line)" stroke-width="1.6" stroke-dasharray="2.5 2" stroke-linecap="round"/>`;
+    }).join("")+`</svg>`;
+  $("board").innerHTML=bridges+S.tiles.map(t=>{
+    const cls=["hex"];let shown=t.troops;
+    if(t.owner<0)cls.push("neutral");
+    if(mine&&t.owner===S.cur)cls.push("mine");
+    if(mv){
+      if(t.id===mv.from){cls.push("sel");shown=t.troops-mv.n;}
+      else if(t.id===mv.to){cls.push("tgt");shown=mv.kind==="conquer"?mv.n:t.troops+mv.n;}
+      else cls.push("dim");
+    }else{
+      if(t.id===S.sel)cls.push("sel");
+      else if(t.id===S.tgt)cls.push("tgt");
+      else if(hits.includes(t.id))cls.push(mine?"hit":"dim");
+      else if(selT)cls.push("dim");
+    }
+    const fx=rolled&&rolled.fx===t.id?`<span class="hitfx">−${rolled.dmg}</span>`:"";
+    return `<button class="${cls.join(" ")}" data-id="${t.id}"
+      style="--rot:${t.rot}deg;--fill:${ownerColor(t.owner)};left:${t.x}%;top:${t.y}%;width:${w}%;height:${hh}%"
+      aria-label="${TER[t.t].n}, ${esc(ownerName(t.owner))}, ${shown} asker"><span class="shape"><span class="inner"><span style="font-size:${fTer}cqw">${TER[t.t].e}</span><span class="tr" style="font-size:${fTr}cqw">${shown}</span></span></span>${fx}</button>`;
+  }).join("");
+  $("chips").innerHTML=chipsHTML();
+
+  let h;
+  if(S.winner!==null)h="Oyun bitti.";
+  else if(!mine)h=away?`${cur.name} bağlantıda değil. Dönmezse sırası birazdan geçilecek.`
+    :`${cur.name} oynuyor (${PHASE_NAME[S.phase]}). Sıranı bekle, hamleleri buradan izleyebilirsin.`;
+  else if(S.phase==="reinforce")h=`${S.pool} asker (${Rules.reinfBreakdown(S,S.cur)}). Kendi alanlarına dokunarak yerleştir.`;
+  else if(S.phase==="move")h="Alan senin! Kaç askerle gireceksin? Geride en az 1 asker kalır.";
+  else if(S.phase==="fortify")h=mv?"Kaç asker taşınsın? Taşıyınca tur biter."
+    :(S.sel===null?"İstersen bir kez asker taşı: en az 2 askerli alanını seç. Ya da turu bitir."
+      :(hits.length?"Askerleri taşıyacağın komşu alanına dokun.":"Yanında kendi alanın yok, başka alan seç."));
+  else if(S.sel===null)h="En az 2 askerli alanına dokun. Gri alanlar tarafsız, onlara da saldırabilirsin.";
+  else if(S.tgt===null)h=hits.length?"Yanıp sönen komşu alanlardan birini seç.":"Yanında hedef yok, başka alan seç.";
+  else h="Zar at! Büyük olan kazanır, eşitlikte savunan kazanır.";
+  $("hint").textContent=h;
+
+  renderDice(!!rolled);
+  $("mover").classList.toggle("hide",!mv);
+  $("battle").classList.toggle("hide",!!mv||S.phase==="fortify");
+  $("rollRow").classList.toggle("hide",!mine);
+  $("mvRow").classList.toggle("hide",!mine);
+  $("mvCancelRow").classList.toggle("hide",!(mine&&mv&&mv.kind==="fortify"));
+  [$("minusBtn"),$("plusBtn")].forEach(b=>b.classList.toggle("hide",!mine));
+  if(mv){$("mvN").textContent=mv.n;$("mvRange").textContent=`${mv.min} – ${mv.max} arası`;
+    $("minusBtn").disabled=mv.n<=mv.min||S.busy;$("plusBtn").disabled=mv.n>=mv.max||S.busy;}
+  const canRoll=S.phase==="attack"&&S.sel!==null&&S.tgt!==null;
+  $("rollBtn").disabled=!canRoll||S.busy;
+  $("blitzBtn").disabled=!canRoll||(S.busy&&!S.blitz);
+  $("blitzBtn").textContent=S.blitz?"Durdur":"Sonuna kadar";
+  $("phaseRow").classList.toggle("hide",!mine||S.phase==="move"||!!mv);
+  $("nextBtn").disabled=S.phase==="reinforce"||S.busy;
+  $("nextBtn").textContent=S.phase==="fortify"?"Taşımadan turu bitir":"Saldırıyı bitir, taşımaya geç";
+
+  $("infoRoom").textContent=room?`Oda kodu ${room.code}. Arkadaşların oyun bitince bu odaya katılabilir.`:"";
+  $("legend").innerHTML=Object.values(TER).map(t=>`<div><span>${t.e}</span><span><b>${t.n}</b> — ${t.d}</span></div>`).join("")+
+    `<div><span class="sw" style="background:${NEUTRAL};width:18px;height:18px;border-width:2px"></span><span><b>Tarafsız</b> — Ova 1, dağ 2, şehir 2 askerle başlar</span></div>`;
+  $("regions").innerHTML=S.regionNames.map((nm,i)=>{
+    const o=Rules.regionOwner(S,i);
+    return `<div><span>${esc(nm)} (+${REGION_BONUS})</span><span style="color:${o>=0?P[o].color:'var(--muted)'};font-weight:600">${o>=0?esc(P[o].name):"Paylaşılmış"}</span></div>`;
+  }).join("");
+  $("log").innerHTML=S.log.map(l=>`<li>${esc(l)}</li>`).join("");
+
+  if(S.winner!==null)showWin();else $("winOv").classList.add("hide");
+}
+function showWin(){
+  const p=S.players[S.winner],iWon=S.winner===mySeat();
+  $("winName").textContent=iWon?"Kazandın!":`${p.name} kazandı`;$("winName").style.color=p.color;
+  $("winText").textContent={wipe:"Bütün rakipleri haritadan silindi!",left:"Rakipler oyundan ayrıldı.",
+    share:`Haritanın çoğunluğu alındı: ${owned(S.winner).length}/${S.tiles.length} alan.`}[S.winReason]||"";
+  $("againBtn").classList.toggle("hide",!isHost());
+  $("winWait").classList.toggle("hide",isHost());
+  $("winOv").classList.remove("hide");
+}
+
+/* ---------- açılış: davet linkiyle gelindiyse kodu doldur, kayıtlı oturum varsa geri bağlan ---------- */
+(function boot(){
+  const code=(new URLSearchParams(location.search).get("oda")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,4);
+  const s=getSession();
+  if(s&&s.code!==code)store.del("dicempire.session");
+  if(code&&!getSession()){
+    $("codeIn").value=code;
+    $("invite").textContent=`${code} odasına davet edildin. Adını yazıp "Katıl"a bas.`;
+    $("invite").classList.remove("hide");
+  }
+  connect();
+})();
+</script>
+</body>
+</html>

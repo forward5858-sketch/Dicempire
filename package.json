@@ -1,0 +1,17 @@
+{
+  "name": "dicempire",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dicempire: arkadaşlarınla, herkes kendi telefonundan oynadığı zar ve ada savaşı",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
