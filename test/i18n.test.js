@@ -71,7 +71,8 @@ test("dil seçimi: kayıtlı tercih, sonra tarayıcı dili, yoksa İngilizce",()
 test("sunucudan gelen günlük kayıtları kural dosyasında metin içermez",()=>{
   const Rules=require("../public/rules.js");
   const S=Rules.newGame(["Ayşe","Bora"]);
-  assert.deepEqual(S.log[0],{k:"start",n:2});
+  assert.deepEqual(S.log.find(l=>l.k==="start"),{k:"start",n:2});
+  assert.deepEqual(S.log[0],{k:"secondBonus",p:1,n:Rules.SECOND_BONUS});
   const b=Rules.reinfBreakdown(S,0);
   assert.deepEqual(b,{base:3,city:2,islands:[]});
   assert.equal(Rules.calcReinf(S,0),5);

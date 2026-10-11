@@ -18,6 +18,8 @@ const RING_TER=["o","d","d","o","o","o"];
 const GATE_NEXT=1, GATE_PREV=2, HOME=[4,5];
 const ISLAND_R={2:1.9,3:2.05,4:2.45};
 const START={base:5,side:3}, WIN_SHARE=.6, REGION_BONUS=3;
+/* İki kişilik oyunda ilk başlayan bot-bot ölçümünde %62 kazanıyordu; ikinci oyuncu şehrine bu kadar fazla askerle başlar */
+const SECOND_BONUS=2;
 const MIN_PLAYERS=2, MAX_PLAYERS=4;
 
 const d6=()=>1+Math.floor(Math.random()*6);
@@ -69,6 +71,7 @@ function newGame(names){
      busy:false,blitz:false,stop:false,winner:null,winReason:null};
   S.pool=calcReinf(S,0);
   addLog(S,"start",{n});
+  if(n===2){S.tiles.find(t=>t.island===1&&t.t==="s").troops+=SECOND_BONUS;addLog(S,"secondBonus",{p:1,n:SECOND_BONUS});}
   return S;
 }
 
@@ -218,7 +221,7 @@ function removePlayer(S,p){
   if(S.cur===p)nextTurn(S);
 }
 
-const api={COLORS,NEUTRAL,TER,REGION_BONUS,WIN_SHARE,MIN_PLAYERS,MAX_PLAYERS,
+const api={COLORS,NEUTRAL,TER,REGION_BONUS,SECOND_BONUS,WIN_SHARE,MIN_PLAYERS,MAX_PLAYERS,
   buildIslands,newGame,owned,ownerColor,winNeed,neighbors,aliveSeats,regionOwner,calcReinf,reinfBreakdown,
   atkBonus,defBonus,addLog,rollOnce,applyRoll,afterBattle,nextTurn,tap,moveStep,moveOk,moveCancel,next,skipTurn,removePlayer};
 if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.Rules=api;

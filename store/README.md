@@ -37,10 +37,12 @@
 - Gizlilik politikası ve destek sayfaları çok oyunculu sürüme göre yeniden yazıldı (TR + EN)
 - Mağaza metinleri, form cevapları, inceleme notu, ekran görüntüleri, öne çıkan görsel
 
-**Bilerek yapılmadı, senin kararın**
-- **İki kişilik oyunda ilk başlayan avantajlı:** botlar birbirine karşı 300 oyunda ilk oyuncu
-  %62 kazandı (4 kişide 29/23/27/21, dengeli). Kurala dokunmadım. Seçenek: iki kişilik oyunda
-  ikinci oyuncuya başlangıçta +2 asker ya da ilk turda saldırı yasağı. Söylersen uygularım.
+**Denge düzeltmesi (senin kararın, `2026-10-11`)**
+- İki kişilik oyunda ilk başlayan bot-bot ölçümünde %60 kazanıyordu. İkinci oyuncunun şehri
+  artık **+2 askerle** başlıyor (`SECOND_BONUS`, `public/rules.js`); 1000 oyunda **51,5 / 48,5**.
+  Kural "Nasıl oynanır"da ve oyun günlüğünde altı dilde yazıyor. 3–4 kişilik oyun değişmedi.
+
+---
 
 ## Zaman çizelgesi
 
@@ -89,4 +91,3 @@ Sırayla. Hesap, para, kimlik ya da senin kararını gerektirdikleri için bunla
     oyun, bağlantı kopup geri gelme, telefonu yan çevirme, titreşim.
 11. **İsim ve haklar:** "Dicempire" App Store'da alınmış mı bak (uygulama adı benzersiz olmalı),
     TÜRKPATENT/EUIPO marka araması yap; logo, menü görselleri ve ikonun ticari kullanım hakkı sende mi, teyit et.
-12. **Karar:** iki kişilik oyundaki ilk oyuncu avantajı (yukarıda).
