@@ -8,7 +8,9 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - `public/rules.js` oyunun kurallarıdır; sunucu ve tarayıcı aynı dosyayı kullanır.
 - `public/index.html` ana menü, lobi ve oyun ekranıdır.
 - `public/i18n.js` oyundaki bütün metinlerin çevirileridir.
-- Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır; `en.html` aynı politikanın İngilizcesidir. İkisi birbirine bağlantı verir, birini değiştirirsen ötekini de güncelle.
+- `bot.js` bilgisayar rakiptir: sırası gelen bot için bir sonraki hamleyi seçer, sunucu onu insanın dokunuşuyla aynı kural fonksiyonlarından geçirir.
+- Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır (GitHub Pages); İngilizcesi `en/privacy.html`, destek sayfaları `destek.html` ve `en/support.html`. Biri değişirse diğer dildekini de güncelle.
+- `ios/` ve `android/` mağaza uygulamalarıdır (Capacitor); `store/` mağaza metinleri, formlar ve ekran görüntüleri.
 - Yazı tipleri (Rubik ve Alfa Slab One, SIL Open Font License) `public/fonts/` klasöründedir; oyun dışarıdan hiçbir dosya yüklemez.
 - Ana menü arka planı `public/menu-dikey.webp` (dikey ekran) ve `public/menu-yatay.webp` (yatay ekran) dosyalarından gelir.
 - Logo `public/logo.webp` (arka planı şeffaf; ana menü, lobi ve kazanma ekranında). Paylaşım görseli `public/og-image.webp`, simgeler `public/favicon-48.png`, `public/apple-touch-icon.png` ve `public/icon-512.png`.
@@ -38,24 +40,33 @@ npm start
 
 Sonra tarayıcıda `http://localhost:3000` adresini aç. Aynı Wi-Fi'daki telefonlardan denemek için bilgisayarın yerel IP adresini kullan (örneğin `http://192.168.1.20:3000`).
 
-Testler için: `npm test`
+Testler için: `npm test`. Bilgisayara karşı denemek için ana menüde "Bilgisayara karşı oyna".
 
-## İnternette yayınlama (Render, ücretsiz)
+## İnternette yayınlama (Render)
 
-1. [render.com](https://render.com) adresinde GitHub hesabınla giriş yap.
-2. **New → Web Service** seç ve bu depoyu bağla.
-3. Ayarları şöyle doldur:
-   - **Root Directory:** boş bırak (oyun deponun kök klasöründe)
-   - **Runtime:** Node
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Health Check Path:** `/healthz`
-   - **Instance Type:** Free
-4. **Create Web Service**'e bas. Birkaç dakika sonra `https://dicempire-xxxx.onrender.com` gibi bir adres verilir; oyun bu adreste açılır, davet linkleri de bu adresle oluşur.
+Depodaki `render.yaml` sunucuyu tarif eder: render.com → **New → Blueprint** → bu depo. Her zaman açık
+**Starter** plan (~7 $/ay) seçili, çünkü mağaza uygulaması bu sunucuya bağlanıyor ve ücretsiz plan
+boşta uyuyup ilk açılışı 30–60 saniye geciktiriyor. Sağlık kontrolü `/healthz`. Odalar bellekte
+tutulduğu için her deploy açık odaları kapatır.
 
-Ücretsiz planda sunucu bir süre hiç trafik almazsa uyur; uyandıktan sonraki ilk açılış 30–60 saniye sürebilir. Sürekli açık kalmasını istersen ücretli plana geçmek gerekir.
+Railway, Fly.io gibi Node.js çalıştırabilen ve WebSocket destekleyen başka bir servis de olur:
+başlatma komutu `npm start`, port `PORT` ortam değişkeninden okunur.
 
-Railway, Fly.io gibi Node.js çalıştırabilen ve WebSocket destekleyen başka bir servis de olur: kök klasör yine deponun kökü, başlatma komutu `npm start`. Sunucu portu `PORT` ortam değişkeninden okur.
+## Mağaza uygulamaları (iOS ve Android)
+
+Uygulama oyunun sayfasını (`public/`) kendi içinde taşır, yalnızca oyun bağlantısı sunucuya gider.
+Sunucunun adresi derlerken verilir:
+
+```bash
+DICEMPIRE_SERVER=https://dicempire.onrender.com npm run android   # Android Studio açılır
+DICEMPIRE_SERVER=https://dicempire.onrender.com npm run ios       # Xcode açılır (Mac gerekir)
+```
+
+`npm run build:app` `public/`'i `www/`'ye kopyalayıp `config.js`'e adresi yazar, `npm run sync`
+ardından yerel projeleri günceller. `public/` değiştiyse yeniden çalıştır. İkon ve açılış ekranı
+`resources/` klasöründen `npx @capacitor/assets generate --assetPath resources` ile üretilir.
+GitHub Actions her push'ta testleri, iOS derlemesini ve Android debug APK'yı çalıştırır.
+Mağaza adımları: `store/README.md`.
 
 ## Kısaca kurallar
 

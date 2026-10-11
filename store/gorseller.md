@@ -1,56 +1,41 @@
 # Mağaza görselleri
 
-## Gerekli dosyalar
+## Hazır olanlar
 
-| Dosya | Mağaza | Ölçü | Kural |
+| Dosya | Mağaza | Ölçü | Durum |
 |---|---|---|---|
-| Uygulama ikonu | App Store | 1024×1024 PNG | Saydamlık yok, köşeleri yuvarlatma (Apple kendisi keser) |
-| Uygulama ikonu | Google Play | 512×512 PNG, ≤1 MB | Kare, köşeleri Google keser; içerik ortadaki %80'de kalsın |
-| Öne çıkan görsel | Google Play (zorunlu) | 1024×500 JPG ya da PNG | Saydamlık yok. Ortaya logo, kenarlara harita parçası. Video eklenirse üstüne oynat düğmesi biner, merkezi boş tut |
-| iPhone ekran görüntüleri | App Store (zorunlu) | 1320×2868 dikey (6,9") | 3-10 adet, her dil için ayrı. Apple küçük ekranlara kendisi ölçekler |
-| iPad ekran görüntüleri | App Store (iPad destekleniyorsa zorunlu) | 2064×2752 dikey (13") | 3-10 adet |
-| Telefon ekran görüntüleri | Google Play (zorunlu) | 1080×1920 dikey | 4-8 adet. Önerilerde öne çıkmak için en az 4 tane, en az 1080 piksel |
-| Tablet ekran görüntüleri | Google Play (önerilir) | 1600×2560 dikey | 4 adet. Yoksa "tablet için tasarlanmış" listelerine girmez |
+| `store/screenshots/<dil>/iphone-6.9/` | App Store (zorunlu) | 1320×2868 | ✅ TR + EN, 3 kare |
+| `store/screenshots/<dil>/ipad-13/` | App Store (iPad destekleniyor, zorunlu) | 2064×2752 | ✅ TR + EN, 3 kare |
+| `store/screenshots/<dil>/play-phone/` | Google Play (zorunlu) | 1080×1920 | ✅ TR + EN, 3 kare |
+| `store/feature-graphic.jpg` | Google Play öne çıkan görsel (zorunlu) | 1024×500 | ✅ paylaşım görselinden |
+| `public/icon-512.png` | Google Play ikonu | 512×512 | ✅ asıl dosya |
+| `resources/icon-only.png` → iOS `AppIcon` | App Store ikonu | 1024×1024 | ⚠️ **geçici**: 512'lik ikon büyütüldü |
+| Android uyarlanabilir ikon | Android ana ekran | katmanlı | ⚠️ **geçici**: ikon koyu zemin üstünde küçültülmüş |
 
-Oyun yatay oynanıyorsa ölçüleri ters çevir.
+Kareler: **1 ana menü · 2 lobi** (iki insan + bir bilgisayar rakip) **· 3 oyun** (alan ele
+geçirilmiş, asker taşıma). Mağaza en az 3 kare istiyor; 5'e kadar çıkmak önerilir.
 
-Tek ikon kaynağı yeter: 1024×1024 bir ana dosya hazırla, 512'liği ondan
-küçült. Android uyarlanabilir ikonu (adaptive icon) için ön plan ve arka plan
-katmanlarını ayrı ver; ön plandaki çizim ortadaki 66 dp çemberden taşmasın.
+## Yeniden üretmek
 
-## Ekran görüntüsü senaryosu
+```bash
+npm i --no-save playwright && npx playwright install chromium
+node scripts/screenshots.js
+```
 
-Beş kare, hepsinin üstünde kısa bir başlık bandı olsun. İlk iki kare en
-önemlisi: mağaza aramasında yalnızca onlar görünür.
+Betik gerçek sunucuyu açar, iki insan ve bir botla oyun kurar, birkaç tur oynatır ve dört
+ölçüde iki dilde çeker. Oyunun görünüşü değişirse yeniden çalıştırmak yeter.
 
-| # | Ekranda ne var | TR başlık | EN başlık |
-|---|---|---|---|
-| 1 | Oyunun ortası, harita renk renk bölünmüş, senin rengin önde | Zarını at, haritayı fethet | Roll the dice, conquer the map |
-| 2 | Saldırı anı, iki tarafın zarları görünüyor | Her saldırı bir karar | Every attack is a choice |
-| 3 | Kurulum ekranı, birkaç oyuncu adı girilmiş | Arkadaşlarınla tek cihazda | Pass and play with friends |
-| 4 | Başarımlar ya da istatistikler | Başarımlar ve istatistikler | Achievements and stats |
-| 5 | Farklı bir tema ile harita | Reklamsız. İnternetsiz. | No ads. No internet. |
+## Senden gereken
 
-"Kumar", "bahis", "şans oyunu" gibi sözcükleri hiçbir görselde ve metinde
-kullanma. Derecelendirme anketinde kumar "yok" dedik; görsel tutarsız olursa
-inceleme takılır.
+1. **İkonun 1024×1024 aslı.** İkon bir yapay zekâ aracıyla üretildiyse o aracın verdiği büyük
+   dosya. `resources/icon-only.png`'nin yerine koy, sonra:
+   `npx @capacitor/assets generate --assetPath resources --iconBackgroundColor '#0f1a33' --splashBackgroundColor '#0f1a33'`
+2. **Android için katmanlı ikon** (isteğe bağlı ama iyi olur): taç ve zar **saydam zeminde**
+   (`resources/icon-foreground.png`, 1024×1024, çizim ortadaki %66'lık dairenin içinde) ve
+   zemin ayrı (`resources/icon-background.png`). Android ikonu daire, damla ya da kare olarak
+   keser; tek parça resimde taç kesilir.
+3. İstersen karelerin üstüne kısa başlık bandı (Figma/Canva): "Arkadaşlarınla zar savaşı",
+   "Tek başına da oyna", "Adaları al, haritaya hükmet". Zorunlu değil.
 
-## Nasıl çekilir
-
-En temiz yol oyunun web sürümünü masaüstü Chrome'da açıp geliştirici
-araçlarındaki cihaz kipini (Ctrl+Shift+M) kullanmak:
-
-| Hedef | Görünüm (CSS px) | Ölçek (DPR) |
-|---|---|---|
-| iPhone 6,9" | 440×956 | 3 |
-| iPad 13" | 1032×1376 | 2 |
-| Play telefon | 360×640 | 3 |
-| Play tablet | 800×1280 | 2 |
-
-Cihaz kipinde "Edit" → özel cihaz ekle, sonra menüden "Capture screenshot".
-Çıkan dosya tam olarak hedef ölçüde olur. Başlık bandını Figma ya da Canva'da
-üstüne ekle.
-
-Kaynak kod bu oturuma açıldığında bu çekimi otomatikleştiren bir betik
-yazabilirim: oyunu belirli bir duruma getirip dört ölçüde ve iki dilde
-çeker.
+"Kumar", "bahis", "şans oyunu" sözcükleri hiçbir görselde olmamalı (derecelendirme
+anketinde kumar "yok").

@@ -1,19 +1,15 @@
 # Mağaza metinleri (TR + EN)
 
-Bu metinler mağaza panellerine olduğu gibi yapıştırılmak için yazıldı. Karakter
-sınırları `store/sinir-kontrol.py` ile denetlendi; metni değiştirirsen betiği
-yeniden çalıştır.
+Mağaza panellerine olduğu gibi yapıştırılmak için yazıldı. Karakter sınırları
+`store/sinir-kontrol.py` ile denetleniyor; metni değiştirirsen betiği yeniden çalıştır.
 
-**Varsayımlar.** Oyunun kaynak kodunu görmedim. Metinler gizlilik
-politikasındaki bilgilerden ve şu varsayımlardan yola çıkıyor: oyun bir
-harita üzerinde zar atarak bölge ele geçirmeye dayanıyor, bilgisayar rakipler
-var, aynı cihazda birden çok oyuncu oynayabiliyor ve saldırıda iki taraf
-da zar atıp yüksek atan kazanıyor. Biri yanlışsa ilgili
-cümleyi çıkar ya da bana söyle.
+Metinler oyunun kendisinden yazıldı (`public/rules.js`, `public/i18n.js`): 2–4 oyuncu,
+herkes kendi telefonundan, oda kodu ya da davet linki, bilgisayar rakipler, ova/dağ/şehir
+arazileri, haritanın %60'ı ile zafer, altı dil.
 
-**Rekabet notu.** "Risk", "Dice Wars" gibi başka oyunların adları anahtar
-kelimelere bilerek konmadı. Apple bunu marka ihlali sayıp reddedebiliyor,
-Google da benzer şekilde kaldırabiliyor.
+"Risk", "Dice Wars" gibi başka oyunların adları anahtar kelimelere bilerek konmadı:
+Apple marka ihlali sayıp reddedebiliyor. "Kumar", "bahis", "şans oyunu" da hiçbir yerde
+geçmiyor; derecelendirme anketinde kumar "yok" diyoruz.
 
 ---
 
@@ -23,39 +19,45 @@ Google da benzer şekilde kaldırabiliyor.
 
 | Alan | Metin |
 |---|---|
-| Ad (≤30) | `Dicempire: Zar ve Fetih` |
-| Alt başlık (≤30) | `İnternetsiz strateji oyunu` |
-| Anahtar kelimeler (≤100) | `harita,bölge,savaş,masa oyunu,taktik,imparatorluk,çevrimdışı,reklamsız,arkadaşla,sıra tabanlı` |
-| Promosyon metni (≤170) | `Zarını at, komşunu fethet, haritanın tek hâkimi ol. Reklam yok, internet yok, takip yok; sadece sen, zarlar ve imparatorluğun.` |
+| Ad (≤30) | `Dicempire: Zar ve Ada Savaşı` |
+| Alt başlık (≤30) | `Arkadaşlarınla strateji oyunu` |
+| Anahtar kelimeler (≤100) | `harita,bölge,masa oyunu,çok oyunculu,taktik,imparatorluk,fetih,sıra tabanlı,parti,bilgisayar,online` |
+| Promosyon metni (≤170) | `Oda kur, kodu arkadaşlarına gönder, zarlar konuşsun. Herkes kendi telefonundan oynar; arkadaşın yoksa bilgisayar rakipler hazır.` |
 
 ### Google Play
 
 | Alan | Metin |
 |---|---|
-| Başlık (≤30) | `Dicempire: Zar ve Fetih` |
-| Kısa açıklama (≤80) | `Zar at, bölgeleri ele geçir, haritaya hükmet. Reklamsız ve internetsiz.` |
+| Başlık (≤30) | `Dicempire: Zar ve Ada Savaşı` |
+| Kısa açıklama (≤80) | `2–4 kişi, herkes kendi telefonundan: zar at, adaları al, haritaya hükmet.` |
 
 ### Açıklama (iki mağazada aynı, ≤4000)
 
 <!-- aciklama-tr -->
 ```
-Zarını at, sınırını genişlet, haritanın tek hâkimi ol.
+Zarını at, adaları ele geçir, haritanın hâkimi ol.
 
-Dicempire hızlı, sade ve derin bir zar ve toprak oyunu. Her bölgede bir zar yığını var. Komşuna saldırdığında iki taraf da zarlarını atar; yüksek atan kazanır. Kazanırsan bölge senindir, kaybedersen ordun dağılır. Her hamle bir karar: şimdi saldırmak mı, sınırı tahkim etmek mi?
+Dicempire arkadaşlarınla oynanan hızlı bir zar ve ada savaşı. Herkes kendi telefonundan katılır: biri oda kurar, davet linkini ya da 4 harfli oda kodunu gönderir, 2–4 kişi toplanınca oyun başlar. Arkadaşların çevrim içi değilse bilgisayar rakiplere karşı hemen oyna.
+
+NASIL OYNANIR
+• Her oyuncunun 7 altıgenlik bir adası var; adalar köprülerle bağlı ve herkese eşit uzaklıkta.
+• Sıran gelince askerlerini yerleştir, en az 2 askerli alanından komşuna saldır.
+• İki taraf zar atar, büyük olan kazanır, eşitlikte savunan kazanır.
+• Arazi önemli: ovadan saldıran, dağda savunan +1 alır; şehir her tur +2 asker verir.
+• Bir adanın tamamı seninse her tur bonus asker kazanırsın.
+• Haritanın %60'ını alan ya da rakiplerini eleyen kazanır.
 
 NEDEN DICEMPIRE?
-• Bir el birkaç dakika sürer, bir türlü bırakamazsın.
-• Kuralları bir dakikada öğrenirsin, ustalaşmak ise ayrı bir iş.
-• Bilgisayar rakiplere karşı oyna ya da aynı cihazda arkadaşlarınla sırayla oyna.
-• Yarım kalan oyun kaydedilir; kaldığın yerden devam edersin.
-• İstatistikler ve başarımlarla ilerlemeni takip et.
-• Temalar, oyun hızı, ses, müzik ve titreşim ayarları.
+• Kısa ve hızlı oyunlar: bir el çay molasına sığar.
+• Hesap açmak yok: adını yaz, oda kur, oyna.
+• WhatsApp ya da linkle saniyeler içinde davet et.
+• Bağlantın koparsa oyun seni aynı koltuğa geri oturtur.
+• Telefonu yatay çevirince harita büyür.
+• Türkçe, English, Deutsch, Español, Français, Русский.
 
 SAYGILI BİR OYUN
-• Reklam yok.
-• Uygulama içi satın alma yok.
-• İnternet gerekmez; uçakta, metroda, her yerde oynanır.
-• Hiçbir kişisel veri toplanmaz, hesap açman gerekmez.
+• Reklam yok, uygulama içi satın alma yok.
+• Takip yok; adın ve hamlelerin yalnızca oyun sürerken sunucuda durur.
 
 Gizlilik politikası: https://forward5858-sketch.github.io/Dicempire/
 ```
@@ -64,7 +66,7 @@ Gizlilik politikası: https://forward5858-sketch.github.io/Dicempire/
 ### Yenilikler (1.0.0)
 
 ```
-Dicempire yayında! Zarlarını at ve imparatorluğunu kur.
+Dicempire yayında! Arkadaşlarını çağır ya da bilgisayara karşı ilk adanı fethet.
 ```
 
 ---
@@ -75,39 +77,45 @@ Dicempire yayında! Zarlarını at ve imparatorluğunu kur.
 
 | Field | Text |
 |---|---|
-| Name (≤30) | `Dicempire: Dice Conquest` |
-| Subtitle (≤30) | `Offline strategy, no ads` |
-| Keywords (≤100) | `territory,map,board,war,tactics,empire,conquer,pass and play,hot seat,turn based,no wifi,classic` |
-| Promotional text (≤170) | `Roll your dice, conquer your neighbours and rule the whole map. No ads, no internet, no tracking. Just you, the dice and your empire.` |
+| Name (≤30) | `Dicempire: Dice & Island War` |
+| Subtitle (≤30) | `Strategy game with friends` |
+| Keywords (≤100) | `territory,map,board game,multiplayer,party,tactics,empire,conquest,turn based,computer,online` |
+| Promotional text (≤170) | `Create a room, send the code, let the dice decide. Everyone plays on their own phone, and computer opponents are ready when your friends aren't.` |
 
 ### Google Play
 
 | Field | Text |
 |---|---|
-| Title (≤30) | `Dicempire: Dice Conquest` |
-| Short description (≤80) | `Roll dice, conquer territories, rule the map. No ads, no internet needed.` |
+| Title (≤30) | `Dicempire: Dice & Island War` |
+| Short description (≤80) | `2–4 players, each on their own phone: roll dice, take islands, rule the map.` |
 
 ### Description (same on both stores, ≤4000)
 
 <!-- aciklama-en -->
 ```
-Roll your dice, push your borders, rule the map.
+Roll your dice, take the islands, rule the map.
 
-Dicempire is a quick, simple and surprisingly deep dice and territory game. Every territory holds a stack of dice. Attack a neighbour and both sides roll; the higher roll wins. Win and the territory is yours; lose and your army scatters. Every move is a choice: strike now, or hold the line?
+Dicempire is a fast dice and island war you play with friends. Everyone joins from their own phone: one player creates a room and sends the invite link or 4-letter room code, and the game starts once 2–4 players are in. Friends not online? Play against computer opponents right away.
+
+HOW TO PLAY
+• Every player has an island of 7 hexes; islands are linked by bridges, all at equal distance.
+• On your turn, place your troops, then attack a neighbour from a territory with at least 2 troops.
+• Both sides roll; the higher roll wins and ties go to the defender.
+• Terrain matters: attack from plains or defend on mountains for +1; cities give +2 troops a turn.
+• Hold a whole island for bonus troops every turn.
+• Take 60% of the map or knock out your rivals to win.
 
 WHY DICEMPIRE?
-• A match takes minutes, and you'll want just one more.
-• Learn the rules in a minute; mastering them is another story.
-• Play against computer opponents, or pass and play with friends on one device.
-• Unfinished games are saved, so you can pick up where you left off.
-• Track your progress with statistics and achievements.
-• Themes, game speed, sound, music and vibration settings.
+• Quick games that fit into a coffee break.
+• No account: enter your name, create a room, play.
+• Invite in seconds with WhatsApp or a link.
+• Lose your connection and the game puts you back in your seat.
+• Turn your phone sideways for a bigger map.
+• English, Türkçe, Deutsch, Español, Français, Русский.
 
 A RESPECTFUL GAME
-• No ads.
-• No in-app purchases.
-• No internet needed: play on a plane, on the subway, anywhere.
-• No personal data collected, no account required.
+• No ads, no in-app purchases.
+• No tracking; your name and moves stay on the server only while the game is on.
 
 Privacy policy: https://forward5858-sketch.github.io/Dicempire/en/privacy.html
 ```
@@ -116,22 +124,28 @@ Privacy policy: https://forward5858-sketch.github.io/Dicempire/en/privacy.html
 ### What's new (1.0.0)
 
 ```
-Dicempire is here! Roll your dice and build your empire.
+Dicempire is here! Invite your friends or conquer your first island against the computer.
 ```
 
 ---
 
-## URL'ler (iki mağazada da girilecek)
+## URL'ler
 
 | Alan | TR | EN |
 |---|---|---|
 | Gizlilik politikası | https://forward5858-sketch.github.io/Dicempire/ | https://forward5858-sketch.github.io/Dicempire/en/privacy.html |
 | Destek (App Store zorunlu) | https://forward5858-sketch.github.io/Dicempire/destek.html | https://forward5858-sketch.github.io/Dicempire/en/support.html |
-| Pazarlama (isteğe bağlı) | boş bırak | boş bırak |
+| Pazarlama (isteğe bağlı) | oyunun web adresi (Render) | aynı |
 
 ## Kategori
 
 | Mağaza | Birincil | İkincil / etiketler |
 |---|---|---|
 | App Store | Oyunlar › Strateji | Oyunlar › Masa |
-| Google Play | Oyun › Strateji | Etiketler: Masa oyunu, Sıra tabanlı strateji, Çevrimdışı, Tek oyunculu, Yerel çok oyunculu |
+| Google Play | Oyun › Strateji | Etiketler: Masa oyunu, Sıra tabanlı strateji, Çok oyunculu, Parti, Tek oyunculu |
+
+## Diğer diller
+
+Oyun DE / ES / FR / RU'yu da destekliyor. 1.0'da mağaza sayfası TR ve EN; diğer dillerdeki
+kullanıcılar İngilizce sayfayı görür. Mağaza verisi bu ülkelerden indirme gösterirse aynı
+metinlerin çevirisi 1.1'de eklenir (çeviriyi ben yapabilirim).
