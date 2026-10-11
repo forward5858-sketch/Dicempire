@@ -9,6 +9,7 @@ Arkadaşlarınla oynanan, 2–4 kişilik zar ve ada savaşı. Herkes kendi telef
 - `public/index.html` ana menü, lobi ve oyun ekranıdır.
 - Kök klasördeki `index.html` oyun değil, gizlilik politikası sayfasıdır.
 - Ana menü arka planı `public/menu-dikey.webp` (dikey ekran) ve `public/menu-yatay.webp` (yatay ekran) dosyalarından gelir.
+- Logo `public/logo.webp` (arka planı şeffaf; ana menü, lobi ve kazanma ekranında). Paylaşım görseli `public/og-image.webp`, simgeler `public/favicon-48.png`, `public/apple-touch-icon.png` ve `public/icon-512.png`.
 
 ### Bağlantı kopunca
 

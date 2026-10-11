@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dicempire — Zar ve Toprak</title>
+<meta name="description" content="Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="Dicempire — Zar ve Toprak">
+<meta property="og:description" content="Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.">
+<meta property="og:image" content="og-image.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -32,6 +39,11 @@ body.menu section .sub{color:var(--ink);font-weight:600}
 body.menu section .card{box-shadow:0 6px 20px rgba(10,25,32,.28)}
 .wrap{max-width:460px;margin:0 auto;padding:10px 12px 14px;min-height:100%;display:flex;flex-direction:column;gap:8px}
 h1{font-family:"Alfa Slab One",Georgia,serif;font-weight:400;font-size:2.3rem;line-height:1;margin:6px 0 2px}
+/* logo: taçlı zar ve DICEMPIRE yazısı, arka planı şeffaf */
+h1.logo{margin:2px 0 4px;line-height:0}
+.logo img{display:block;width:auto;height:auto;max-width:min(100%,300px);max-height:30vh;margin:0 auto;filter:drop-shadow(0 6px 12px rgba(10,25,32,.35))}
+.logo.sm img{max-width:min(100%,190px);max-height:20vh}
+.logo+.sub{text-align:center}
 .sub{color:var(--muted);margin:0 0 12px;font-size:.92rem}
 button{font-family:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
@@ -146,6 +158,8 @@ h3{margin:0 0 6px;font-size:.98rem}
   .board{max-width:none;height:100%;width:auto;aspect-ratio:1}
   .rotate{display:none}
   #home,#lobby{width:100%;max-width:460px;margin:0 auto;min-height:0;overflow:auto}
+  .logo img{max-height:34vh}
+  .logo.sm img{max-height:24vh}
   .die{width:48px;height:48px;padding:7px}
   .pip{width:8px;height:8px}
   .hint{min-height:0}
@@ -160,7 +174,7 @@ h3{margin:0 0 6px;font-size:.98rem}
 <div class="wrap">
 
   <section id="home">
-    <h1>Dicempire</h1>
+    <h1 class="logo"><img src="logo.webp" width="880" height="653" alt="Dicempire"></h1>
     <p class="sub">Arkadaşlarınla zar ve ada savaşı. Herkes kendi telefonundan oynar.</p>
     <div class="card stack">
       <p class="invite hide" id="invite"></p>
@@ -189,7 +203,7 @@ h3{margin:0 0 6px;font-size:.98rem}
   </section>
 
   <section id="lobby" class="hide">
-    <h1>Dicempire</h1>
+    <h1 class="logo sm"><img src="logo.webp" width="880" height="653" alt="Dicempire"></h1>
     <p class="sub">Arkadaşların bu kodla ya da davet linkiyle katılır.</p>
     <div class="card">
       <p class="lbl" style="text-align:center;margin:0">Oda kodu</p>
@@ -276,7 +290,7 @@ h3{margin:0 0 6px;font-size:.98rem}
 
 <div class="over hide" id="winOv">
   <div class="card" style="text-align:center">
-    <div style="font-size:3rem">👑</div>
+    <img src="logo.webp" width="880" height="653" alt="" style="display:block;width:150px;height:auto;margin:0 auto">
     <h2 id="winName"></h2>
     <p id="winText" style="margin:0 0 14px"></p>
     <div class="stack" style="gap:8px">
