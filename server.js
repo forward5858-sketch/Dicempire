@@ -4,13 +4,16 @@
 const http=require("http"),fs=require("fs"),path=require("path"),crypto=require("crypto");
 const {WebSocketServer}=require("ws");
 const R=require("./public/rules.js");
+const Bot=require("./bot.js");
 
 const PUB=path.join(__dirname,"public");
 const TYPES={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",
   ".webp":"image/webp",".png":"image/png",".svg":"image/svg+xml",".ico":"image/x-icon",".json":"application/json",
   ".woff2":"font/woff2",".txt":"text/plain; charset=utf-8"};
 const ROLL_MS=750;            // tek zar animasyonu bitene kadar yeni zar atılamaz
-const BLITZ_STEP_MS=560;      // "sonuna kadar" saldırıda iki zar arası
+const BLITZ_STEP_MS=+process.env.DICEMPIRE_BLITZ_MS||560;   // "sonuna kadar" saldırıda iki zar arası
+const BOT_MS=+process.env.DICEMPIRE_BOT_MS||650;            // bot hamleleri arası; insan izleyebilsin diye yavaş
+const BOT_MAX_ACTS=300;       // bir botun tek turda yapabileceği hamle sınırı (sonsuz döngü emniyeti)
 const AWAY_MS=+process.env.DICEMPIRE_AWAY_MS||45000;   // bağlantısı kopan oyuncunun sırası bu süre sonra geçilir
 const LOBBY_GRACE_MS=60000;   // lobide bağlantısı kopan oyuncu bu süre içinde dönmezse listeden çıkar
 const ROOM_IDLE_MS=10*60000;  // kimse bağlı değilse oda bu süre sonra silinir
@@ -48,7 +51,7 @@ const send=(ws,m)=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify(m));};
 
 function roomView(room,me){
   return {t:"room",code:room.code,host:room.hostId,status:room.status,you:me.id,
-    players:room.players.map(p=>({id:p.id,name:p.name,seat:p.seat,online:!!p.ws}))};
+    players:room.players.map(p=>({id:p.id,name:p.name,seat:p.seat,online:!!p.ws||!!p.bot,bot:!!p.bot}))};
 }
 function broadcastRoom(room){pickHost(room);room.players.forEach(p=>send(p.ws,roomView(room,p)));}
 function broadcastState(room,roll){
@@ -60,11 +63,11 @@ function reseat(room){room.players.forEach((p,i)=>{p.seat=i;});}
 function pickHost(room){
   const h=room.players.find(p=>p.id===room.hostId);
   if(h&&h.ws)return;
-  const n=room.players.find(p=>p.ws)||h||room.players[0];
+  const n=room.players.find(p=>p.ws)||h||room.players.find(p=>!p.bot);
   room.hostId=n?n.id:null;
 }
 function deleteRoom(room){
-  clearTimeout(room.awayTimer);clearTimeout(room.idleTimer);
+  clearTimeout(room.awayTimer);clearTimeout(room.idleTimer);clearTimeout(room.botTimer);
   room.players.forEach(p=>{clearTimeout(p.dropTimer);if(p.ws)p.ws.ctx=null;});
   room.S=null;rooms.delete(room.code);
 }
@@ -87,11 +90,17 @@ function addPlayer(room,ws,name){
   attach(room,p,ws);
   broadcastRoom(room);
 }
+/* Bot koltuğu: bağlantısı yok ama hep "bağlı" sayılır, sırasını sunucu oynar */
+function addBot(room){
+  const b={id:newId(),token:null,name:Bot.botName(room.players.map(p=>p.name)),seat:room.players.length,ws:null,bot:true};
+  room.players.push(b);
+  broadcastRoom(room);
+}
 function removeFromRoom(room,p){
   clearTimeout(p.dropTimer);
   if(p.ws)p.ws.ctx=null;
   room.players=room.players.filter(x=>x!==p);
-  if(!room.players.length)return deleteRoom(room);
+  if(!room.players.some(x=>!x.bot))return deleteRoom(room);    // botlar tek başına oda tutmaz
   if(room.status==="lobby")reseat(room);
   broadcastRoom(room);
 }
@@ -109,7 +118,7 @@ function checkAway(room){
   const S=room.S;
   if(room.status!=="game"||!S||S.winner!==null){clearTimeout(room.awayTimer);room.awayTimer=null;return;}
   const p=room.players.find(x=>x.seat===S.cur);
-  if(p&&p.ws){clearTimeout(room.awayTimer);room.awayTimer=null;return;}
+  if(p&&(p.ws||p.bot)){clearTimeout(room.awayTimer);room.awayTimer=null;if(p.bot)scheduleBot(room);return;}
   if(room.awayTimer&&room.awayTurn===S.turn)return;     // zaten sayılıyor
   clearTimeout(room.awayTimer);
   room.awayTurn=S.turn;
@@ -121,6 +130,39 @@ function checkAway(room){
     if(S.busy){room.awayTimer=setTimeout(()=>checkAway(room),1000);return;}
     R.skipTurn(S);broadcastState(room);checkAway(room);
   },AWAY_MS);
+}
+
+/* ---------- bot ---------- */
+/* Botlar ancak odada bağlı bir insan varken oynar: izleyen yoksa oyun boşuna ilerlemesin.
+   İnsan geri dönünce (resume) checkAway botu yeniden uyandırır. */
+function scheduleBot(room){
+  const S=room.S;
+  if(room.botTimer||room.status!=="game"||!S||S.winner!==null||S.busy)return;
+  const p=room.players.find(x=>x.seat===S.cur);
+  if(!p||!p.bot||!room.players.some(x=>x.ws))return;
+  room.botTimer=setTimeout(()=>{room.botTimer=null;botStep(room,S);},S.phase==="reinforce"?BOT_MS/3:BOT_MS);
+}
+function botStep(room,S){
+  const p=room.players.find(x=>x.seat===S.cur);
+  if(room.S!==S||S.winner!==null||S.busy||!p||!p.bot)return;
+  if(room.botTurn!==S.turn){room.botTurn=S.turn;room.botActs=0;}
+  let changed=false;
+  if(++room.botActs<=BOT_MAX_ACTS){
+    const act=Bot.decide(S);
+    switch(act.a){
+      case "tap":changed=R.tap(S,act.tile);break;
+      case "blitz":return blitz(room);      // bitince checkAway botu yeniden çağırır
+      case "setMove":
+        if(S.move){S.move.n=Math.min(S.move.max,Math.max(S.move.min,act.n));changed=R.moveOk(S);}
+        break;
+      case "next":changed=R.next(S);break;
+    }
+  }
+  if(!changed){                             // geçersiz hamle ya da sınır aşıldı: turu bitirip devam et
+    console.error(`Bot ${p.name} takıldı (tur ${S.turn}, aşama ${S.phase}), sırası geçiliyor.`);
+    R.skipTurn(S);
+  }
+  broadcastState(room);checkAway(room);
 }
 
 /* ---------- zar ---------- */
@@ -166,6 +208,7 @@ function onMessage(ws,m){
       const room={code:newCode(),players:[],hostId:null,status:"lobby",S:null};
       rooms.set(room.code,room);
       addPlayer(room,ws,m.name);
+      if(m.solo)addBot(room);               // "bilgisayara karşı": lobiye bir botla gelir
       return;
     }
     case "join":{
@@ -193,6 +236,18 @@ function onMessage(ws,m){
   const {room,p}=ctx,S=room.S;
   switch(m.t){
     case "leave":ws.ctx=null;leave(room,p);return;
+    case "addBot":
+      if(p.id!==room.hostId||room.status!=="lobby"||room.players.length>=R.MAX_PLAYERS)return;
+      addBot(room);
+      return;
+    case "kick":{
+      if(p.id!==room.hostId||room.status!=="lobby"||m.id===p.id)return;
+      const q=room.players.find(x=>x.id===m.id);
+      if(!q)return;
+      if(q.ws){send(q.ws,{t:"kicked"});q.ws.ctx=null;}
+      removeFromRoom(room,q);
+      return;
+    }
     case "start":
       if(p.id!==room.hostId||room.status!=="lobby"||room.players.length<R.MIN_PLAYERS)return;
       reseat(room);
@@ -203,7 +258,7 @@ function onMessage(ws,m){
     case "again":
       if(p.id!==room.hostId||room.status!=="game"||!S||S.winner===null)return;
       room.status="lobby";room.S=null;reseat(room);
-      room.players.forEach(x=>{if(!x.ws)x.dropTimer=setTimeout(()=>{if(!x.ws&&room.status==="lobby")removeFromRoom(room,x);},LOBBY_GRACE_MS);});
+      room.players.forEach(x=>{if(!x.ws&&!x.bot)x.dropTimer=setTimeout(()=>{if(!x.ws&&room.status==="lobby")removeFromRoom(room,x);},LOBBY_GRACE_MS);});
       broadcastRoom(room);
       return;
     case "act":{
