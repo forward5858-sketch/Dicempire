@@ -76,17 +76,18 @@ test("oda kurulur, kodla katılınır, herkes oyuncu listesini görür",async()=
   all.forEach(c=>c.close());
 });
 
-test("olmayan oda, dolu oda ve başlamış oyun için anlaşılır hata",async()=>{
+test("olmayan oda, dolu oda ve başlamış oyun için hata anahtarı gelir",async()=>{
   const c=client();await c.open();
   c.send({t:"join",code:"ZZZZ",name:"X"});
-  assert.match((await c.next(m=>m.t==="error")).msg,/Böyle bir oda yok/);
+  assert.equal((await c.next(m=>m.t==="error")).key,"noRoom");
   const L=await lobbyWith(4);
   c.send({t:"join",code:L.code,name:"X"});
-  assert.match((await c.next(m=>m.t==="error")).msg,/Oda dolu/);
+  const full=await c.next(m=>m.t==="error");
+  assert.equal(full.key,"full");assert.equal(full.n,4);
   L.all.forEach(x=>x.close());
   const G=await started(2);
   c.send({t:"join",code:G.code,name:"X"});
-  assert.match((await c.next(m=>m.t==="error")).msg,/oyun başlamış/);
+  assert.equal((await c.next(m=>m.t==="error")).key,"started");
   G.all.forEach(x=>x.close());c.close();
 });
 
@@ -174,7 +175,7 @@ test("bağlantısı kopan oyuncu kodla geri döner ve oyuna devam eder",async()=
   assert.equal((await st).S.players.length,3);
   const bad=client();await bad.open();
   bad.send({t:"resume",code,token:"yanlis"});
-  assert.equal((await bad.next(m=>m.t==="error")).code,"resume");
+  assert.equal((await bad.next(m=>m.t==="error")).key,"resume");
   [...all,again,bad].forEach(c=>c.close());
 });
 
@@ -184,7 +185,8 @@ test("sırası gelen oyuncunun bağlantısı koparsa sırası geçilir",async()=
   host.close();
   const S=(await skipped).S;
   assert.equal(S.phase,"reinforce");
-  assert.match(S.log.find(l=>/sırası geçildi/.test(l)),/Ayşe/);
+  const skip=S.log.find(l=>l.k==="skip");
+  assert.ok(skip);assert.equal(S.players[skip.p].name,"Ayşe");
   all.forEach(c=>c.close());
 });
 
