@@ -7,7 +7,8 @@ const R=require("./public/rules.js");
 
 const PUB=path.join(__dirname,"public");
 const TYPES={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",
-  ".webp":"image/webp",".png":"image/png",".svg":"image/svg+xml",".ico":"image/x-icon",".json":"application/json"};
+  ".webp":"image/webp",".png":"image/png",".svg":"image/svg+xml",".ico":"image/x-icon",".json":"application/json",
+  ".woff2":"font/woff2",".txt":"text/plain; charset=utf-8"};
 const ROLL_MS=750;            // tek zar animasyonu bitene kadar yeni zar atılamaz
 const BLITZ_STEP_MS=560;      // "sonuna kadar" saldırıda iki zar arası
 const AWAY_MS=+process.env.DICEMPIRE_AWAY_MS||45000;   // bağlantısı kopan oyuncunun sırası bu süre sonra geçilir
@@ -29,7 +30,7 @@ const server=http.createServer((req,res)=>{
     if(err){res.writeHead(404,{"content-type":"text/plain; charset=utf-8"});return res.end("Bulunamadı");}
     const ext=path.extname(file);
     res.writeHead(200,{"content-type":TYPES[ext]||"application/octet-stream",
-      "cache-control":ext===".webp"?"public, max-age=86400":"no-cache"});
+      "cache-control":ext===".webp"||ext===".woff2"?"public, max-age=86400":"no-cache"});
     res.end(req.method==="HEAD"?undefined:data);
   });
 });
