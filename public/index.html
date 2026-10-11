@@ -72,6 +72,9 @@ h3{margin:0 0 6px;font-size:.98rem}
 .plist li{display:flex;align-items:center;gap:10px;font-weight:600}
 .plist .tag{margin-left:auto;font-size:.78rem;color:var(--muted);font-weight:600}
 .plist .off{opacity:.5}
+.plist .kick{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;color:var(--muted);font-weight:800;line-height:1;padding:0}
+.links{margin:12px 0 0;text-align:center;font-size:.85rem}
+.links a{color:inherit;font-weight:600}
 .net{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:20;
   background:#e03131;color:#fff;font-weight:700;font-size:.85rem;padding:7px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 #panel.myturn{border-color:var(--ink);box-shadow:0 0 0 3px var(--glow)}
@@ -189,6 +192,7 @@ body.menu .langbar label{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--me
         <input class="field" id="nameIn" maxlength="14" placeholder="Örn. Ayşe" data-i18n-ph="namePh" autocomplete="nickname">
       </div>
       <button class="btn wide" id="createBtn" data-i18n="create">Oda kur</button>
+      <button class="btn ghost wide" id="soloBtn" data-i18n="solo">🤖 Bilgisayara karşı oyna</button>
       <div class="or" data-i18n="orJoin">ya da koda katıl</div>
       <div class="row">
         <input class="field code" id="codeIn" maxlength="4" placeholder="KOD" data-i18n-ph="codePh" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Oda kodu" data-i18n-aria="codeAria">
@@ -206,6 +210,7 @@ body.menu .langbar label{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--me
       <p data-i18n-html="rule.move"><b>Taşıma:</b> Alanı alınca kaç askerle gireceğini seçersin. Saldırı bitince bir kez komşu alanların arasında asker taşıyabilirsin.</p>
       <p data-i18n-html="rule.win"><b>Kazanmak:</b> Haritanın %60'ını alan ya da rakiplerini eleyen kazanır.</p>
     </div>
+    <p class="links"><a id="privacyLink" target="_blank" rel="noopener" data-i18n="privacy">Gizlilik</a> · <a id="supportLink" target="_blank" rel="noopener" data-i18n="support">Destek</a></p>
   </section>
 
   <section id="lobby" class="hide">
@@ -227,6 +232,7 @@ body.menu .langbar label{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--me
       <h3><span data-i18n="players">Oyuncular</span> <span id="pCount" style="color:var(--muted)"></span></h3>
       <ul class="plist" id="pList"></ul>
       <p class="rules" id="lobbyNote" style="margin:0 0 10px"></p>
+      <button class="btn ghost wide" id="botBtn" style="margin-bottom:8px" data-i18n="addBot">🤖 Bilgisayar ekle</button>
       <button class="btn wide" id="startBtn" data-i18n="startGame">Oyunu başlat</button>
       <p class="rules hide" id="waitNote" style="margin:0;text-align:center" data-i18n="waitHost">Oda sahibinin oyunu başlatması bekleniyor…</p>
     </div>
@@ -308,6 +314,7 @@ body.menu .langbar label{text-shadow:0 1px 3px var(--menuGlow),0 0 12px var(--me
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="i18n.js"></script>
 <script src="rules.js"></script>
 <script>
@@ -327,7 +334,13 @@ const owned=p=>Rules.owned(S,p);
 const mySeat=()=>{const p=room&&room.players.find(x=>x.id===me);return p?p.seat:-1;};
 const myTurn=()=>!!S&&S.winner===null&&S.cur===mySeat();
 const isHost=()=>!!room&&room.host===me;
-const inviteLink=code=>`${location.origin}${location.pathname}?oda=${code}`;
+/* Mağaza uygulamasında sayfa telefondan açılır (config.js sunucunun adresini verir);
+   web sürümünde sayfayı sunucunun kendisi dağıtır, adres sayfanın adresidir. */
+const CFG=window.DICEMPIRE||{};
+const APP=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const webBase=()=>CFG.server?CFG.server.replace(/\/$/,"")+"/":location.origin+location.pathname;
+const inviteLink=code=>`${webBase()}?oda=${code}`;
+const SITE=CFG.site||"https://forward5858-sketch.github.io/Dicempire/";
 
 /* ---------- oturum: sayfa yenilense ya da bağlantı kopsa da aynı koltuğa dönülür ---------- */
 const store={
@@ -346,6 +359,9 @@ function applyStatic(){
   document.querySelectorAll("[data-i18n-ph]").forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
   document.querySelectorAll("[data-i18n-aria]").forEach(el=>{el.setAttribute("aria-label",t(el.dataset.i18nAria));});
   document.querySelectorAll(".langsel").forEach(el=>{el.value=I18n.lang;});
+  const tr=I18n.lang==="tr";
+  $("privacyLink").href=SITE+(tr?"":"en/privacy.html");
+  $("supportLink").href=SITE+(tr?"destek.html":"en/support.html");
 }
 document.querySelectorAll(".langsel").forEach(el=>{
   el.innerHTML=Object.entries(I18n.LANGS).map(([k,n])=>`<option value="${k}">${n}</option>`).join("");
@@ -376,7 +392,8 @@ let ws=null,retry=0,retryTimer=null;const outbox=[];
 function connect(){
   if(ws&&ws.readyState<2)return;
   clearTimeout(retryTimer);
-  ws=new WebSocket(`${location.protocol==="https:"?"wss":"ws"}://${location.host}/ws`);
+  ws=new WebSocket(CFG.server?CFG.server.replace(/^http/,"ws").replace(/\/$/,"")+"/ws"
+    :`${location.protocol==="https:"?"wss":"ws"}://${location.host}/ws`);
   ws.onopen=()=>{
     retry=0;$("net").classList.add("hide");
     const s=getSession();if(s)ws.send(JSON.stringify({t:"resume",code:s.code,token:s.token}));
@@ -419,13 +436,21 @@ async function handle(m){
     if(room&&room.status==="game")showScreen("game");
     if(m.roll&&S.dice)await animateRoll(S.dice,m.roll==="blitz"?300:600);
     render(m.roll?S.dice:null);
-    if(!first&&myTurn()&&S.turn!==prevTurn&&navigator.vibrate)navigator.vibrate(120);
+    if(!first&&myTurn()&&S.turn!==prevTurn)buzz();
     return;
   }
+  if(m.t==="kicked"){store.del("dicempire.session");resetToHome("err.kicked");return;}
   if(m.t==="error"){
     if(m.key==="resume"){store.del("dicempire.session");resetToHome("err.resume");}
     else setErr("err."+m.key,{n:m.n});
   }
+}
+
+/* Sıra sana gelince kısa titreşim: uygulamada yerel dokunsal geri bildirim (iOS'ta navigator.vibrate yok) */
+function buzz(){
+  const H=APP&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
+  if(H)H.impact({style:"MEDIUM"}).catch(()=>{});
+  else if(navigator.vibrate)navigator.vibrate(120);
 }
 
 /* ---------- ekranlar ---------- */
@@ -452,6 +477,7 @@ function needName(){
   setErr("err.needName");$("nameIn").focus();return true;
 }
 $("createBtn").onclick=()=>{if(needName())return;setErr(null);send({t:"create",name:myName()});};
+$("soloBtn").onclick=()=>{if(needName())return;setErr(null);send({t:"create",name:myName(),solo:true});};
 $("joinBtn").onclick=()=>{
   const code=$("codeIn").value.trim().toUpperCase();
   if(code.length!==4){setErr("err.codeLen");$("codeIn").focus();return;}
@@ -471,7 +497,9 @@ function renderLobby(){
   $("pCount").textContent=`${n}/${MAX_PLAYERS}`;
   $("pList").innerHTML=P.map(p=>`<li class="${p.online?'':'off'}"><span class="sw" style="background:${COLORS[p.seat].c}"></span>
     <span>${esc(p.name)}${p.id===me?` (${t("you")})`:""}</span>
-    <span class="tag">${p.id===room.host?t("hostTag"):""}${p.online?"":` · ${t("offline")}`}</span></li>`).join("");
+    <span class="tag">${p.id===room.host?t("hostTag"):""}${p.online?"":` · ${t("offline")}`}</span>${host&&p.id!==me
+      ?`<button class="kick" data-id="${esc(p.id)}" aria-label="${esc(t("kick",{name:p.name}))}">✕</button>`:""}</li>`).join("");
+  $("botBtn").classList.toggle("hide",!host||n>=MAX_PLAYERS);
   const total=n*7;
   $("lobbyNote").innerHTML=n<MIN_PLAYERS?t("lobbyNeed",{n:MIN_PLAYERS})
     :t("lobbyMap",{n,total,need:Math.ceil(total*Rules.WIN_SHARE)});
@@ -495,6 +523,8 @@ $("waBtn").onclick=()=>window.open(`https://wa.me/?text=${encodeURIComponent(`${
 $("copyBtn").onclick=copyLink;
 $("startBtn").onclick=()=>{send({t:"start"});goFullscreen();};
 $("leaveLobbyBtn").onclick=leaveRoom;
+$("botBtn").onclick=()=>send({t:"addBot"});
+$("pList").onclick=e=>{const b=e.target.closest(".kick");if(b)send({t:"kick",id:b.dataset.id});};
 
 /* ---------- oyun etkileşimi: her dokunuş sunucuya gider, sunucu yeni durumu herkese yollar ---------- */
 $("board").onclick=e=>{const b=e.target.closest(".hex");if(b)act("tap",{tile:+b.dataset.id});};
@@ -507,7 +537,10 @@ $("mvMax").onclick=()=>act("move",{op:"max"});
 $("mvOk").onclick=()=>act("moveOk");
 $("mvCancel").onclick=()=>act("moveCancel");
 $("nextBtn").onclick=()=>act("next");
+const canFullscreen=!APP&&!!document.documentElement.requestFullscreen;
+$("fsBtn").classList.toggle("hide",!canFullscreen);
 async function goFullscreen(){
+  if(!canFullscreen)return;
   try{
     if(!document.fullscreenElement&&document.documentElement.requestFullscreen)
       await document.documentElement.requestFullscreen({navigationUI:"hide"});
